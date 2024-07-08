@@ -105,6 +105,7 @@ from . import (
     gpt_sw3,
     gptj,
     grounding_dino,
+    omdet_turbo,
     groupvit,
     herbert,
     hiera,

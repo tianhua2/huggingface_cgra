@@ -69,27 +69,10 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
         formatted_prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
         self.assertEqual(expected_prompt, formatted_prompt)
 
-    @require_vision
-    @require_torch
-    def test_tokenizer_defaults_preserved_by_kwargs(self):
-        if "image_processor" not in self.processor_class.attributes:
-            self.skipTest(f"image_processor attribute not present in {self.processor_class}")
-        image_processor = self.get_component("image_processor")
-        tokenizer = self.get_component("tokenizer", max_length=117, padding="max_length")
-        if not tokenizer.pad_token:
-            tokenizer.pad_token = "[TEST_PAD]"
-
-        processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
-        self.skip_processor_without_typed_kwargs(processor)
-        input_str = "lower newer"
-        image_input = self.prepare_image_inputs()
-
-        inputs = processor(text=input_str, images=image_input, return_tensors="pt")
-        self.assertEqual(len(inputs["input_ids"][0]), 117)
-
     @require_torch
     @require_vision
     def test_image_processor_defaults_preserved_by_image_kwargs(self):
+        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor", crop_size=(234, 234))
@@ -102,31 +85,13 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
         image_input = self.prepare_image_inputs()
 
         inputs = processor(text=input_str, images=image_input)
+        # added dimension for image patches
         self.assertEqual(len(inputs["pixel_values"][0][0][0]), 234)
-
-    @require_vision
-    @require_torch
-    def test_kwargs_overrides_default_tokenizer_kwargs(self):
-        if "image_processor" not in self.processor_class.attributes:
-            self.skipTest(f"image_processor attribute not present in {self.processor_class}")
-        image_processor = self.get_component("image_processor")
-        tokenizer = self.get_component("tokenizer", max_length=117)
-        if not tokenizer.pad_token:
-            tokenizer.pad_token = "[TEST_PAD]"
-
-        processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
-        self.skip_processor_without_typed_kwargs(processor)
-        input_str = "lower newer"
-        image_input = self.prepare_image_inputs()
-
-        inputs = processor(
-            text=input_str, images=image_input, return_tensors="pt", max_length=112, padding="max_length"
-        )
-        self.assertEqual(len(inputs["input_ids"][0]), 112)
 
     @require_torch
     @require_vision
     def test_kwargs_overrides_default_image_processor_kwargs(self):
+        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor", crop_size=(234, 234))
@@ -139,11 +104,13 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
         image_input = self.prepare_image_inputs()
 
         inputs = processor(text=input_str, images=image_input, crop_size=[224, 224])
+        # added dimension for image patches
         self.assertEqual(len(inputs["pixel_values"][0][0][0]), 224)
 
     @require_torch
     @require_vision
     def test_unstructured_kwargs(self):
+        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -164,12 +131,14 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
             max_length=76,
         )
 
+        # added dimension for image patches
         self.assertEqual(inputs["pixel_values"].shape[3], 214)
         self.assertEqual(len(inputs["input_ids"][0]), 76)
 
     @require_torch
     @require_vision
     def test_unstructured_kwargs_batched(self):
+        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -189,7 +158,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
             padding="longest",
             max_length=76,
         )
-        print("pixel_values shape", inputs["pixel_values"].shape)
+        # added dimension for image patches
         self.assertEqual(inputs["pixel_values"].shape[3], 214)
 
         self.assertEqual(len(inputs["input_ids"][0]), 5)
@@ -197,6 +166,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_structured_kwargs_nested(self):
+        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -219,6 +189,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
         inputs = processor(text=input_str, images=image_input, **all_kwargs)
         self.skip_processor_without_typed_kwargs(processor)
 
+        # added dimension for image patches
         self.assertEqual(inputs["pixel_values"].shape[3], 214)
 
         self.assertEqual(len(inputs["input_ids"][0]), 76)
@@ -226,6 +197,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_structured_kwargs_nested_from_dict(self):
+        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
 
@@ -247,6 +219,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
         }
 
         inputs = processor(text=input_str, images=image_input, **all_kwargs)
+        # added dimension for image patches
         self.assertEqual(inputs["pixel_values"].shape[3], 214)
 
         self.assertEqual(len(inputs["input_ids"][0]), 76)

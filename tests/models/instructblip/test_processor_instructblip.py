@@ -207,6 +207,7 @@ class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_image_processor_defaults_preserved_by_image_kwargs(self):
+        # rewrite as instructblip needs a qformer_tokenizer
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor", size=(234, 234))
@@ -226,6 +227,7 @@ class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_kwargs_overrides_default_image_processor_kwargs(self):
+        # rewrite as instructblip needs a qformer_tokenizer
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor", size=(234, 234))
@@ -246,6 +248,7 @@ class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_vision
     @require_torch
     def test_kwargs_overrides_default_tokenizer_kwargs(self):
+        # rewrite as instructblip needs a qformer_tokenizer
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -271,6 +274,7 @@ class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_structured_kwargs_nested(self):
+        # rewrite as instructblip needs a qformer_tokenizer
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -306,6 +310,7 @@ class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_structured_kwargs_nested_from_dict(self):
+        # rewrite as instructblip needs a qformer_tokenizer
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
 
@@ -340,6 +345,7 @@ class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_vision
     @require_torch
     def test_tokenizer_defaults_preserved_by_kwargs(self):
+        # rewrite as instructblip needs a qformer_tokenizer
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -364,6 +370,7 @@ class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_unstructured_kwargs(self):
+        # rewrite as instructblip needs a qformer_tokenizer
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -397,6 +404,7 @@ class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_unstructured_kwargs_batched(self):
+        # rewrite as instructblip needs a qformer_tokenizer
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")

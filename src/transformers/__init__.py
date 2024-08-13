@@ -3669,6 +3669,7 @@ else:
     )
     _import_structure["optimization"] = [
         "Adafactor",
+        "AdamMini",
         "AdamW",
         "get_constant_schedule",
         "get_constant_schedule_with_warmup",
@@ -7949,6 +7950,7 @@ if TYPE_CHECKING:
         # Optimization
         from .optimization import (
             Adafactor,
+            AdamMini,
             AdamW,
             get_constant_schedule,
             get_constant_schedule_with_warmup,

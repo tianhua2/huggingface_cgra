@@ -72,7 +72,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_image_processor_defaults_preserved_by_image_kwargs(self):
-        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
+        # Rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor", crop_size=(234, 234))
@@ -91,7 +91,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_kwargs_overrides_default_image_processor_kwargs(self):
-        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
+        # Rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor", crop_size=(234, 234))
@@ -110,7 +110,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_unstructured_kwargs(self):
-        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
+        # Rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -136,7 +136,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_unstructured_kwargs_batched(self):
-        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
+        # Rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -162,7 +162,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_structured_kwargs_nested(self):
-        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
+        # Rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
@@ -191,7 +191,7 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
     @require_torch
     @require_vision
     def test_structured_kwargs_nested_from_dict(self):
-        # rewrite as llava-next image processor return pixel values with an added dimesion for image patches
+        # Rewrite as llava-next image processor return pixel values with an added dimesion for image patches
         if "image_processor" not in self.processor_class.attributes:
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
 

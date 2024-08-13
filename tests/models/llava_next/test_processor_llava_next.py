@@ -115,8 +115,6 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
         tokenizer = self.get_component("tokenizer")
-        if not tokenizer.pad_token:
-            tokenizer.pad_token = "[TEST_PAD]"
         processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
         self.skip_processor_without_typed_kwargs(processor)
 
@@ -143,8 +141,6 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
         tokenizer = self.get_component("tokenizer")
-        if not tokenizer.pad_token:
-            tokenizer.pad_token = "[TEST_PAD]"
         processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
         self.skip_processor_without_typed_kwargs(processor)
 
@@ -171,8 +167,6 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
             self.skipTest(f"image_processor attribute not present in {self.processor_class}")
         image_processor = self.get_component("image_processor")
         tokenizer = self.get_component("tokenizer")
-        if not tokenizer.pad_token:
-            tokenizer.pad_token = "[TEST_PAD]"
         processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
         self.skip_processor_without_typed_kwargs(processor)
 
@@ -203,8 +197,6 @@ class LlavaNextProcessorTest(ProcessorTesterMixin, unittest.TestCase):
 
         image_processor = self.get_component("image_processor")
         tokenizer = self.get_component("tokenizer")
-        if not tokenizer.pad_token:
-            tokenizer.pad_token = "[TEST_PAD]"
 
         processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
         self.skip_processor_without_typed_kwargs(processor)

@@ -16,10 +16,14 @@
 Image/Text processor class for GIT
 """
 
-import warnings
+import logging
 
 from ...processing_utils import ProcessorMixin
 from ...tokenization_utils_base import BatchEncoding
+from ...utils.deprecation import deprecate_kwarg
+
+
+logger = logging.getLogger(__name__)
 
 
 class GitProcessor(ProcessorMixin):
@@ -44,6 +48,7 @@ class GitProcessor(ProcessorMixin):
         super().__init__(image_processor, tokenizer)
         self.current_processor = self.image_processor
 
+    @deprecate_kwarg(old_name="legacy", version="5.0.0")
     def __call__(self, text=None, images=None, return_tensors=None, **kwargs):
         """
         Main method to prepare for the model one or several sequences(s) and image(s). This method forwards the `text`
@@ -80,8 +85,9 @@ class GitProcessor(ProcessorMixin):
         """
         legacy = kwargs.pop("legacy", True)
         if legacy:
-            warnings.warn(
-                "The use of legacy will be deprecated in the future. Please use the new processing behavior by setting legacy=False."
+            logger.warning(
+                "Legacy behavior is being used. The new behavior with legacy=False will be enabled in the future."
+                "If both images and text are provided, it will remove the last token (EOS token) of the input_ids and attention_mask tensors."
             )
 
         tokenizer_kwargs, image_processor_kwargs = {}, {}

@@ -198,7 +198,7 @@ class UdopProcessor(ProcessorMixin):
         """
         return self.tokenizer.decode(*args, **kwargs)
 
-    def post_process_image_text_to_text(self, generated_outputs):
+    def post_process_image_text_to_text(self, sequences):
         """
         Post-process the output of the model to decode the text.
 
@@ -210,7 +210,7 @@ class UdopProcessor(ProcessorMixin):
         Returns:
             `List[str]`: The decoded text.
         """
-        return self.tokenizer.batch_decode(generated_outputs, skip_special_tokens=True)
+        return self.tokenizer.batch_decode(sequences, skip_special_tokens=True)
 
     @property
     # Copied from transformers.models.layoutlmv3.processing_layoutlmv3.LayoutLMv3Processor.model_input_names

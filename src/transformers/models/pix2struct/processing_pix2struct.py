@@ -16,12 +16,16 @@
 Processor class for Pix2Struct.
 """
 
-import warnings
+import logging
 from typing import List, Optional, Union
 
 from ...processing_utils import ProcessorMixin
 from ...tokenization_utils_base import BatchEncoding, PaddingStrategy, PreTokenizedInput, TextInput, TruncationStrategy
 from ...utils import TensorType
+from ...utils.deprecation import deprecate_kwarg
+
+
+logger = logging.getLogger(__name__)
 
 
 class Pix2StructProcessor(ProcessorMixin):
@@ -47,11 +51,12 @@ class Pix2StructProcessor(ProcessorMixin):
         tokenizer.return_token_type_ids = False
         super().__init__(image_processor, tokenizer)
 
+    @deprecate_kwarg(old_name="legacy", version="5.0.0")
     def __call__(
         self,
         images=None,
         text: Union[TextInput, PreTokenizedInput, List[TextInput], List[PreTokenizedInput]] = None,
-        add_special_tokens: bool = True,
+        add_special_tokens: bool = None,
         padding: Union[bool, str, PaddingStrategy] = False,
         truncation: Union[bool, str, TruncationStrategy] = None,
         max_length: Optional[int] = None,
@@ -76,8 +81,10 @@ class Pix2StructProcessor(ProcessorMixin):
         """
         legacy = kwargs.pop("legacy", True)
         if legacy:
-            warnings.warn(
-                "The use of legacy will be deprecated in the future. Please use the new processing behavior by setting legacy=False."
+            logger.warning(
+                "Legacy behavior is being used. The new behavior with legacy=False will be enabled in the future."
+                "If both images and text are provided and image_processor is not a VQA processor, and `add_special_tokens` is unset, "
+                "it will change the default value of `add_special_tokens` to `False` when calling the tokenizer."
             )
 
         if images is None and text is None:
@@ -85,6 +92,7 @@ class Pix2StructProcessor(ProcessorMixin):
 
         # Get only text
         if images is None and not self.image_processor.is_vqa:
+            add_special_tokens = add_special_tokens if add_special_tokens is not None else True
             self.current_processor = self.tokenizer
             text_encoding = self.tokenizer(
                 text=text,
@@ -118,8 +126,7 @@ class Pix2StructProcessor(ProcessorMixin):
             )
 
         if text is not None and not self.image_processor.is_vqa:
-            if not legacy:
-                add_special_tokens = False
+            add_special_tokens = add_special_tokens if add_special_tokens is not None else legacy
             text_encoding = self.tokenizer(
                 text=text,
                 add_special_tokens=add_special_tokens,

@@ -16,11 +16,16 @@
 Processor class for Donut.
 """
 
+import logging
 import re
 import warnings
 from contextlib import contextmanager
 
 from ...processing_utils import ProcessorMixin
+from ...utils.deprecation import deprecate_kwarg
+
+
+logger = logging.getLogger(__name__)
 
 
 class DonutProcessor(ProcessorMixin):
@@ -63,6 +68,7 @@ class DonutProcessor(ProcessorMixin):
         self.current_processor = self.image_processor
         self._in_target_context_manager = False
 
+    @deprecate_kwarg(old_name="legacy", version="5.0.0")
     def __call__(self, *args, **kwargs):
         """
         When used in normal mode, this method forwards all its arguments to AutoImageProcessor's
@@ -73,8 +79,10 @@ class DonutProcessor(ProcessorMixin):
         # For backward compatibility
         legacy = kwargs.pop("legacy", True)
         if legacy:
-            warnings.warn(
-                "The use of legacy will be deprecated in the future. Please use the new processing behavior by setting legacy=False."
+            logger.warning(
+                "Legacy behavior is being used. The new behavior with legacy=False will be enabled in the future."
+                "If both images and text are provided, it will change the default value of `add_special_tokens` to `False` when calling the tokenizer, "
+                "if `add_special_tokens` is unset, and the tokenized text will be returned in the `decoder_input_ids` key instead of the `labels` key."
             )
 
         if self._in_target_context_manager:
@@ -95,7 +103,7 @@ class DonutProcessor(ProcessorMixin):
             encodings = self.tokenizer(text, **kwargs)
         elif text is not None:
             if not legacy:
-                kwargs.update({"add_special_tokens": False})
+                kwargs.setdefault("add_special_tokens", False)
             encodings = self.tokenizer(text, **kwargs)
 
         if text is None:
@@ -103,10 +111,10 @@ class DonutProcessor(ProcessorMixin):
         elif images is None:
             return encodings
         else:
-            if not legacy:
-                inputs["decoder_input_ids"] = encodings["input_ids"]
-            else:
+            if legacy:
                 inputs["labels"] = encodings["input_ids"]
+            else:
+                inputs["decoder_input_ids"] = encodings["input_ids"]
             return inputs
 
     def batch_decode(self, *args, **kwargs):

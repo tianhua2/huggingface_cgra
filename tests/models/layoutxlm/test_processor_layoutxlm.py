@@ -23,7 +23,7 @@ import numpy as np
 
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerBase, PreTrainedTokenizerFast
 from transformers.models.layoutxlm import LayoutXLMTokenizer, LayoutXLMTokenizerFast
-from transformers.models.layoutxlm.processing_layoutxlm import LayoutXLMProcessorKwargs
+from transformers.models.layoutxlm.processing_layoutxlm import LayoutXLMProcessor, LayoutXLMProcessorKwargs
 from transformers.testing_utils import (
     require_pytesseract,
     require_sentencepiece,
@@ -39,7 +39,7 @@ from ...test_processing_common import ProcessorTesterMixin
 if is_pytesseract_available():
     from PIL import Image
 
-    from transformers import LayoutLMv2ImageProcessor, LayoutXLMProcessor
+    from transformers import LayoutLMv2ImageProcessor
 
 
 @require_pytesseract

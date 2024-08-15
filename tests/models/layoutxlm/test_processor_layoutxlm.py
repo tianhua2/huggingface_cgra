@@ -23,7 +23,7 @@ import numpy as np
 
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerBase, PreTrainedTokenizerFast
 from transformers.models.layoutxlm import LayoutXLMTokenizer, LayoutXLMTokenizerFast
-from transformers.models.layoutxlm.processing_layoutxlm import LayoutXLMProcessor, LayoutXLMProcessorKwargs
+from transformers.models.layoutxlm.processing_layoutxlm import LayoutXLMProcessor
 from transformers.testing_utils import (
     require_pytesseract,
     require_sentencepiece,
@@ -31,14 +31,15 @@ from transformers.testing_utils import (
     require_torch,
     slow,
 )
-from transformers.utils import FEATURE_EXTRACTOR_NAME, cached_property, is_pytesseract_available
+from transformers.utils import FEATURE_EXTRACTOR_NAME, cached_property, is_pytesseract_available, is_vision_available
 
 from ...test_processing_common import ProcessorTesterMixin
 
 
-if is_pytesseract_available():
+if is_vision_available():
     from PIL import Image
 
+if is_pytesseract_available():
     from transformers import LayoutLMv2ImageProcessor
 
 
@@ -202,14 +203,13 @@ class LayoutXLMProcessorTest(ProcessorTesterMixin, unittest.TestCase):
 
         processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
 
-        output_kwargs = processor._merge_kwargs(
-            LayoutXLMProcessorKwargs,
-            tokenizer_init_kwargs=tokenizer.init_kwargs,
-            apply_ocr=False,
-        )
-
-        apply_ocr = output_kwargs["images_kwargs"].get("apply_ocr", image_processor.apply_ocr)
-        self.assertEqual(apply_ocr, False)
+        image_input = self.prepare_image_inputs()
+        with self.assertRaises(ValueError):
+            processor(
+                images=image_input,
+                return_tensors="pt",
+                apply_ocr=False,
+            )
 
 
 # different use cases tests

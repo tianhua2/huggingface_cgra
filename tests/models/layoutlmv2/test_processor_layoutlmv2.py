@@ -23,7 +23,7 @@ import numpy as np
 
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerBase, PreTrainedTokenizerFast
 from transformers.models.layoutlmv2 import LayoutLMv2Tokenizer, LayoutLMv2TokenizerFast
-from transformers.models.layoutlmv2.processing_layoutlmv2 import LayoutLMv2Processor, LayoutLMv2ProcessorKwargs
+from transformers.models.layoutlmv2.processing_layoutlmv2 import LayoutLMv2Processor
 from transformers.models.layoutlmv2.tokenization_layoutlmv2 import VOCAB_FILES_NAMES
 from transformers.testing_utils import require_pytesseract, require_tokenizers, require_torch, slow
 from transformers.utils import FEATURE_EXTRACTOR_NAME, cached_property, is_pytesseract_available
@@ -206,14 +206,13 @@ class LayoutLMv2ProcessorTest(ProcessorTesterMixin, unittest.TestCase):
 
         processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
 
-        output_kwargs = processor._merge_kwargs(
-            LayoutLMv2ProcessorKwargs,
-            tokenizer_init_kwargs=tokenizer.init_kwargs,
-            apply_ocr=False,
-        )
-
-        apply_ocr = output_kwargs["images_kwargs"].get("apply_ocr", image_processor.apply_ocr)
-        self.assertEqual(apply_ocr, False)
+        image_input = self.prepare_image_inputs()
+        with self.assertRaises(ValueError):
+            processor(
+                images=image_input,
+                return_tensors="pt",
+                apply_ocr=False,
+            )
 
 
 # different use cases tests

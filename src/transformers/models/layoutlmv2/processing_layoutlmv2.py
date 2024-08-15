@@ -150,6 +150,9 @@ class LayoutLMv2Processor(ProcessorMixin):
                 text = [text]  # add batch dimension (as the image processor always adds a batch dimension)
             text_pair = features["words"]
 
+        if text is None and not hasattr(features, "words"):
+            raise ValueError("You need to provide `text` or set `apply_ocr` to `True`")
+
         encoded_inputs = self.tokenizer(
             text=text if text is not None else features["words"],
             text_pair=text_pair if text_pair is not None else None,

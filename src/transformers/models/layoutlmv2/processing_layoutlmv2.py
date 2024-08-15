@@ -51,7 +51,7 @@ class LayoutLMv2ProcessorKwargs(ProcessingKwargs, total=False):
         },
         "images_kwargs": {
             "apply_ocr": True,
-        }
+        },
     }
 
 

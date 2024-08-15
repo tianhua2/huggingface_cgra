@@ -46,6 +46,7 @@ if is_pytesseract_available():
 @require_sentencepiece
 @require_tokenizers
 class LayoutXLMProcessorTest(ProcessorTesterMixin, unittest.TestCase):
+    image_data_arg_name = "image"
     processor_class = LayoutXLMProcessor
     tokenizer_class = LayoutXLMTokenizer
     rust_tokenizer_class = LayoutXLMTokenizerFast
@@ -64,6 +65,8 @@ class LayoutXLMProcessorTest(ProcessorTesterMixin, unittest.TestCase):
 
         # taken from `test_tokenization_layoutxlm.LayoutXLMTokenizationTest.test_save_pretrained`
         self.tokenizer_pretrained_name = "hf-internal-testing/tiny-random-layoutxlm"
+        tokenizer = LayoutXLMTokenizer.from_pretrained(self.tokenizer_pretrained_name)
+        tokenizer.save_pretrained(self.tmpdirname)
 
     def get_tokenizer(self, **kwargs) -> PreTrainedTokenizer:
         return self.tokenizer_class.from_pretrained(self.tokenizer_pretrained_name, **kwargs)

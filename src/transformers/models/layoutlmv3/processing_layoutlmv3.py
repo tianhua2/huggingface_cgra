@@ -121,7 +121,6 @@ class LayoutLMv3Processor(ProcessorMixin):
         output_kwargs = self._merge_kwargs(
             LayoutLMv3ProcessorKwargs,
             tokenizer_init_kwargs=self.tokenizer.init_kwargs,
-            image_processor_init_kwargs=self.image_processor.init_kwargs,
             **kwargs,
         )
 

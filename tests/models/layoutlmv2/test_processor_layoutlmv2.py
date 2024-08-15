@@ -40,6 +40,7 @@ if is_pytesseract_available():
 @require_pytesseract
 @require_tokenizers
 class LayoutLMv2ProcessorTest(ProcessorTesterMixin, unittest.TestCase):
+    image_data_arg_name = "image"
     processor_class = LayoutLMv2Processor
     tokenizer_class = LayoutLMv2Tokenizer
     rust_tokenizer_class = LayoutLMv2TokenizerFast

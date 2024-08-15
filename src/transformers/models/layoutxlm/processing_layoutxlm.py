@@ -118,7 +118,6 @@ class LayoutXLMProcessor(ProcessorMixin):
         output_kwargs = self._merge_kwargs(
             LayoutXLMProcessorKwargs,
             tokenizer_init_kwargs=self.tokenizer.init_kwargs,
-            image_processor_init_kwargs=self.image_processor.init_kwargs,
             **kwargs,
         )
 

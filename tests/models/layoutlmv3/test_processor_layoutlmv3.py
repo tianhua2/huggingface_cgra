@@ -23,9 +23,12 @@ import numpy as np
 
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerBase, PreTrainedTokenizerFast
 from transformers.models.layoutlmv3 import LayoutLMv3Tokenizer, LayoutLMv3TokenizerFast
+from transformers.models.layoutlmv3.processing_layoutlmv3 import LayoutLMv3ProcessorKwargs
 from transformers.models.layoutlmv3.tokenization_layoutlmv3 import VOCAB_FILES_NAMES
 from transformers.testing_utils import require_pytesseract, require_tokenizers, require_torch, slow
 from transformers.utils import FEATURE_EXTRACTOR_NAME, cached_property, is_pytesseract_available
+
+from ...test_processing_common import ProcessorTesterMixin
 
 
 if is_pytesseract_available():
@@ -36,7 +39,8 @@ if is_pytesseract_available():
 
 @require_pytesseract
 @require_tokenizers
-class LayoutLMv3ProcessorTest(unittest.TestCase):
+class LayoutLMv3ProcessorTest(ProcessorTesterMixin, unittest.TestCase):
+    processor_class = LayoutLMv3Processor
     tokenizer_class = LayoutLMv3Tokenizer
     rust_tokenizer_class = LayoutLMv3TokenizerFast
 
@@ -172,6 +176,23 @@ class LayoutLMv3ProcessorTest(unittest.TestCase):
         inputs = processor(text=input_str, images=image_input, return_codebook_pixels=False, return_image_mask=False)
 
         self.assertListEqual(list(inputs.keys()), processor.model_input_names)
+
+    def test_model_specific_kwargs(self):
+        if "image_processor" not in self.processor_class.attributes:
+            self.skipTest(f"image_processor attribute not present in {self.processor_class}")
+        image_processor = self.get_component("image_processor", apply_ocr=True)
+        tokenizer = self.get_component("tokenizer", max_length=117, padding="max_length")
+
+        processor = self.processor_class(tokenizer=tokenizer, image_processor=image_processor)
+
+        output_kwargs = processor._merge_kwargs(
+            LayoutLMv3ProcessorKwargs,
+            tokenizer_init_kwargs=tokenizer.init_kwargs,
+            apply_ocr=False,
+        )
+
+        apply_ocr = output_kwargs["images_kwargs"].get("apply_ocr", image_processor.apply_ocr)
+        self.assertEqual(apply_ocr, False)
 
 
 # different use cases tests

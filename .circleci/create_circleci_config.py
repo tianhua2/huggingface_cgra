@@ -363,8 +363,8 @@ exotic_models_job = CircleCIJob(
     install_steps=["uv venv && uv pip install ."],
     docker_image=[{"image":"huggingface/transformers-exotic-models"}],
     tests_to_run=[
-        "./tests/models/layoutlm*",
-        "./tests/models/layoutxlm",
+        "./tests/models/layoutlm*/*.py",
+        "./tests/models/layoutxlm/*.py",
         "./tests/models/*nat",
         "./tests/models/deta",
         "./tests/models/udop",

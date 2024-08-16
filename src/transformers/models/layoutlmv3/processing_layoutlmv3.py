@@ -21,7 +21,7 @@ import warnings
 from typing import List, Optional, Union
 
 from ...image_utils import ImageInput
-from ...processing_utils import ImagesKwargs, ProcessingKwargs, ProcessorMixin
+from ...processing_utils import ImagesKwargs, ProcessingKwargs, ProcessorMixin, TextKwargs
 from ...tokenization_utils_base import BatchEncoding, PreTokenizedInput, TextInput
 
 
@@ -31,6 +31,12 @@ else:
     from typing_extensions import Unpack
 
 
+class LayoutLMv3TextKwargs(TextKwargs, total=False):
+    text_pair: Optional[Union[PreTokenizedInput, List[PreTokenizedInput]]]
+    boxes: Optional[Union[List[List[int]], List[List[List[int]]]]]
+    word_labels: Optional[Union[List[int], List[List[int]]]]
+
+
 class LayoutLMv3ImagesKwargs(ImagesKwargs, total=False):
     apply_ocr: bool
     ocr_lang: Optional[str]
@@ -38,6 +44,7 @@ class LayoutLMv3ImagesKwargs(ImagesKwargs, total=False):
 
 
 class LayoutLMv3ProcessorKwargs(ProcessingKwargs, total=False):
+    text_kwargs: LayoutLMv3TextKwargs
     images_kwargs: LayoutLMv3ImagesKwargs
     _defaults = {
         "text_kwargs": {
@@ -101,10 +108,7 @@ class LayoutLMv3Processor(ProcessorMixin):
     def __call__(
         self,
         images: ImageInput,
-        text: Union[TextInput, PreTokenizedInput, List[TextInput], List[PreTokenizedInput]] = None,
-        text_pair: Optional[Union[PreTokenizedInput, List[PreTokenizedInput]]] = None,
-        boxes: Union[List[List[int]], List[List[List[int]]]] = None,
-        word_labels: Optional[Union[List[int], List[List[int]]]] = None,
+        text: Optional[Union[TextInput, PreTokenizedInput, List[TextInput], List[PreTokenizedInput]]] = None,
         **kwargs: Unpack[LayoutLMv3ProcessorKwargs],
     ) -> BatchEncoding:
         """
@@ -124,6 +128,9 @@ class LayoutLMv3Processor(ProcessorMixin):
             **kwargs,
         )
 
+        text_pair = output_kwargs["text_kwargs"].pop("text_pair", None)
+        boxes = output_kwargs["text_kwargs"].pop("boxes", None)
+        word_labels = output_kwargs["text_kwargs"].pop("word_labels", None)
         apply_ocr = output_kwargs["images_kwargs"].get("apply_ocr", self.image_processor.apply_ocr)
 
         # verify input
@@ -146,13 +153,19 @@ class LayoutLMv3Processor(ProcessorMixin):
                 text = [text]  # add batch dimension (as the image processor always adds a batch dimension)
             text_pair = features["words"]
 
-        if text is None and not hasattr(features, "words"):
-            raise ValueError("You need to provide `text` or set `apply_ocr` to `True`")
+        if text is None:
+            if not hasattr(features, "words"):
+                raise ValueError("You need to provide `text` or set `apply_ocr` to `True`")
+            text = features["words"]
+        if boxes is None:
+            if not hasattr(features, "boxes"):
+                raise ValueError("You need to provide `boxes` or set `apply_ocr` to `True`")
+            boxes = features["boxes"]
 
         encoded_inputs = self.tokenizer(
-            text=text if text is not None else features["words"],
-            text_pair=text_pair if text_pair is not None else None,
-            boxes=boxes if boxes is not None else features["boxes"],
+            text=text,
+            text_pair=text_pair,
+            boxes=boxes,
             word_labels=word_labels,
             **output_kwargs["text_kwargs"],
         )

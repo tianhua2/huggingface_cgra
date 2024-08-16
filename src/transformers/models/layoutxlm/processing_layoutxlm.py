@@ -108,6 +108,9 @@ class LayoutXLMProcessor(ProcessorMixin):
         self,
         images: ImageInput,
         text: Optional[Union[TextInput, PreTokenizedInput, List[TextInput], List[PreTokenizedInput]]] = None,
+        audio=None,
+        videos=None,
+        backwards_compatibility_placeholder_arg=None,
         **kwargs: Unpack[LayoutXLMProcessorKwargs],
     ) -> BatchEncoding:
         """
@@ -126,6 +129,48 @@ class LayoutXLMProcessor(ProcessorMixin):
             **kwargs,
         )
 
+        if "text_pair" not in output_kwargs["text_kwargs"]:
+            warnings.warn(
+                "No `text_pair` kwarg was detected. The use of `text_pair` as an argument without specifying it explicitely as `text_pair=` will be deprecated in future versions."
+            )
+            # For backwards compatibility, we reuse `audio` as `text_pair` in case
+            # downstream users passed it as a positional argument
+            if audio is not None:
+                output_kwargs["text_kwargs"]["text_pair"] = audio
+        if output_kwargs["text_kwargs"].get("text_pair") is not None and audio is not None:
+            raise ValueError(
+                "You cannot provide `text_pair` as a positional argument and as a keyword argument at the same time."
+                "Please provide it only as a keyword argument (i.e. `text_pair=...`)."
+            )
+        if "boxes" not in output_kwargs["text_kwargs"]:
+            warnings.warn(
+                "No `boxes` kwarg was detected. The use of `boxes` as an argument without specifying it explicitely as `boxes=` will be deprecated in future versions."
+            )
+            # For backwards compatibility, we reuse `videos` as `boxes` in case
+            # downstream users passed it as a positional argument
+            if videos is not None:
+                output_kwargs["text_kwargs"]["boxes"] = videos
+        if output_kwargs["text_kwargs"].get("boxes") is not None and videos is not None:
+            raise ValueError(
+                "You cannot provide `boxes` as a positional argument and as a keyword argument at the same time."
+                "Please provide it only as a keyword argument (i.e. `boxes=...`)."
+            )
+        if "word_labels" not in output_kwargs["text_kwargs"]:
+            warnings.warn(
+                "No `word_labels` kwarg was detected. The use of `word_labels` as an argument without specifying it explicitely as `word_labels=` will be deprecated in future versions."
+            )
+            # For backwards compatibility, we reuse `backwards_compatibility_placeholder_arg` as `word_labels` in case
+            # downstream users passed it as a positional argument
+            if backwards_compatibility_placeholder_arg is not None:
+                output_kwargs["text_kwargs"]["word_labels"] = backwards_compatibility_placeholder_arg
+        if (
+            output_kwargs["text_kwargs"].get("word_labels") is not None
+            and backwards_compatibility_placeholder_arg is not None
+        ):
+            raise ValueError(
+                "You cannot provide `word_labels` as a positional argument and as a keyword argument at the same time."
+                "Please provide it only as a keyword argument (i.e. `word_labels=...`)."
+            )
         text_pair = output_kwargs["text_kwargs"].pop("text_pair", None)
         boxes = output_kwargs["text_kwargs"].pop("boxes", None)
         word_labels = output_kwargs["text_kwargs"].pop("word_labels", None)

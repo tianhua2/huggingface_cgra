@@ -130,6 +130,11 @@ class LayoutLMv2Processor(ProcessorMixin):
             **kwargs,
         )
 
+        if output_kwargs["text_kwargs"].get("text_pair") is not None and audio is not None:
+            raise ValueError(
+                "You cannot provide `text_pair` as a positional argument and as a keyword argument at the same time."
+                "Please provide it only as a keyword argument (i.e. `text_pair=...`)."
+            )
         if "text_pair" not in output_kwargs["text_kwargs"]:
             warnings.warn(
                 "No `text_pair` kwarg was detected. The use of `text_pair` as an argument without specifying it explicitely as `text_pair=` will be deprecated in future versions."
@@ -138,10 +143,11 @@ class LayoutLMv2Processor(ProcessorMixin):
             # downstream users passed it as a positional argument
             if audio is not None:
                 output_kwargs["text_kwargs"]["text_pair"] = audio
-        if output_kwargs["text_kwargs"].get("text_pair") is not None and audio is not None:
+
+        if output_kwargs["text_kwargs"].get("boxes") is not None and videos is not None:
             raise ValueError(
-                "You cannot provide `text_pair` as a positional argument and as a keyword argument at the same time."
-                "Please provide it only as a keyword argument (i.e. `text_pair=...`)."
+                "You cannot provide `boxes` as a positional argument and as a keyword argument at the same time."
+                "Please provide it only as a keyword argument (i.e. `boxes=...`)."
             )
         if "boxes" not in output_kwargs["text_kwargs"]:
             warnings.warn(
@@ -151,10 +157,14 @@ class LayoutLMv2Processor(ProcessorMixin):
             # downstream users passed it as a positional argument
             if videos is not None:
                 output_kwargs["text_kwargs"]["boxes"] = videos
-        if output_kwargs["text_kwargs"].get("boxes") is not None and videos is not None:
+
+        if (
+            output_kwargs["text_kwargs"].get("word_labels") is not None
+            and backwards_compatibility_placeholder_arg is not None
+        ):
             raise ValueError(
-                "You cannot provide `boxes` as a positional argument and as a keyword argument at the same time."
-                "Please provide it only as a keyword argument (i.e. `boxes=...`)."
+                "You cannot provide `word_labels` as a positional argument and as a keyword argument at the same time."
+                "Please provide it only as a keyword argument (i.e. `word_labels=...`)."
             )
         if "word_labels" not in output_kwargs["text_kwargs"]:
             warnings.warn(
@@ -164,14 +174,7 @@ class LayoutLMv2Processor(ProcessorMixin):
             # downstream users passed it as a positional argument
             if backwards_compatibility_placeholder_arg is not None:
                 output_kwargs["text_kwargs"]["word_labels"] = backwards_compatibility_placeholder_arg
-        if (
-            output_kwargs["text_kwargs"].get("word_labels") is not None
-            and backwards_compatibility_placeholder_arg is not None
-        ):
-            raise ValueError(
-                "You cannot provide `word_labels` as a positional argument and as a keyword argument at the same time."
-                "Please provide it only as a keyword argument (i.e. `word_labels=...`)."
-            )
+
         text_pair = output_kwargs["text_kwargs"].pop("text_pair", None)
         boxes = output_kwargs["text_kwargs"].pop("boxes", None)
         word_labels = output_kwargs["text_kwargs"].pop("word_labels", None)

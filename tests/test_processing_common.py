@@ -47,8 +47,8 @@ if is_vision_available():
 @require_torch
 @require_vision
 class ProcessorTesterMixin:
-    image_data_arg_name = "pixel_values"
     processor_class = None
+    image_data_arg_name = "pixel_values"
 
     def prepare_processor_dict(self):
         return {}

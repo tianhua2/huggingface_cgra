@@ -20,9 +20,10 @@ import sys
 import warnings
 from typing import List, Optional, Union
 
+from ...feature_extraction_utils import BatchFeature
 from ...image_utils import ImageInput
 from ...processing_utils import ImagesKwargs, ProcessingKwargs, ProcessorMixin, TextKwargs
-from ...tokenization_utils_base import BatchEncoding, PreTokenizedInput, TextInput
+from ...tokenization_utils_base import PreTokenizedInput, TextInput
 
 
 if sys.version_info >= (3, 11):
@@ -116,7 +117,7 @@ class LayoutLMv3Processor(ProcessorMixin):
         audio=None,
         videos=None,
         **kwargs: Unpack[LayoutLMv3ProcessorKwargs],
-    ) -> BatchEncoding:
+    ) -> BatchFeature:
         """
         This method first forwards the `images` argument to [`~LayoutLMv3ImageProcessor.__call__`]. In case
         [`LayoutLMv3ImageProcessor`] was initialized with `apply_ocr` set to `True`, it passes the obtained words and
@@ -127,6 +128,25 @@ class LayoutLMv3Processor(ProcessorMixin):
         resized and normalized `pixel_values`.
 
         Please refer to the docstring of the above two methods for more information.
+
+        Args:
+            images (`ImageInput`):
+                The image or batch of images to be prepared. Each image can be a PIL image, NumPy array or PyTorch
+                tensor. Both channels-first and channels-last formats are supported.
+            text (`TextInput`, `PreTokenizedInput`, `List[TextInput]`, `List[PreTokenizedInput]`, *optional*):
+                The sequence or batch of sequences to be encoded. Each sequence can be a string or a list of strings
+                (pretokenized string). If the sequences are provided as list of strings (pretokenized), you must set
+                `is_split_into_words=True` (to lift the ambiguity with a batch of sequences).
+
+        Returns:
+            [`BatchFeature`]: A [`BatchFeature`] with the following fields:
+
+            - **input_ids** -- List of token ids to be fed to a model. Returned when `text` is not `None`.
+            - **attention_mask** -- List of indices specifying which tokens should be attended to by the model (when
+              `return_attention_mask=True` or if *"attention_mask"* is in `self.model_input_names` and if `text` is not
+              `None`).
+            - **image** -- Pixel values to be fed to a model.
+            - **bbox** -- Bounding boxes of the words in the image.
         """
         output_kwargs = self._merge_kwargs(
             LayoutLMv3ProcessorKwargs,
@@ -183,7 +203,9 @@ class LayoutLMv3Processor(ProcessorMixin):
             images = self.get_overflowing_images(images, encoded_inputs["overflow_to_sample_mapping"])
         encoded_inputs["pixel_values"] = images
 
-        return encoded_inputs
+        return BatchFeature(
+            data=dict(**encoded_inputs), tensor_type=output_kwargs["common_kwargs"].get("return_tensors")
+        )
 
     def get_overflowing_images(self, images, overflow_to_sample_mapping):
         # in case there's an overflow, ensure each `input_ids` sample is mapped to its corresponding image

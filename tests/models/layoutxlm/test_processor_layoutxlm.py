@@ -205,6 +205,7 @@ class LayoutXLMProcessorTest(ProcessorTesterMixin, unittest.TestCase):
 
         image_input = self.prepare_image_inputs()
         with self.assertRaises(ValueError):
+            # LayoutXLM's processor expects `text` to be provided when `apply_ocr` is set to False
             processor(
                 images=image_input,
                 return_tensors="pt",

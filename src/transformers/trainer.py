@@ -268,6 +268,10 @@ def _get_fsdp_ckpt_kwargs():
         return {}
 
 
+def _is_schedule_free_optimizer(optimizer):
+    return "ScheduleFree" in optimizer.__class__.__name__
+
+
 if TYPE_CHECKING:
     import optuna
 
@@ -1512,8 +1516,8 @@ class Trainer:
             additional_optim_kwargs["warmup_steps"] = args.warmup_steps
             additional_optim_kwargs.update(
                 {
-                    "weight_lr_power": float(getattr(torch, optim_args.get("weight_lr_power", 2.0))),
-                    "r": float(getattr(torch, optim_args.get("r", 0.0))),
+                    "weight_lr_power": float(optim_args.get("weight_lr_power", 2.0)),
+                    "r": float(optim_args.get("r", 0.0)),
                 }
             )
             optimizer_kwargs.update(additional_optim_kwargs)
@@ -3444,7 +3448,7 @@ class Trainer:
             `torch.Tensor`: The tensor with training loss on this batch.
         """
         model.train()
-        if "ScheduleFree" in self.optimizer.__class__.__name__:
+        if _is_schedule_free_optimizer(self.optimizer):
             self.optimizer.train()
 
         inputs = self._prepare_inputs(inputs)
@@ -3997,7 +4001,7 @@ class Trainer:
         logger.info(f"  Batch size = {batch_size}")
 
         model.eval()
-        if "ScheduleFree" in self.optimizer.__class__.__name__:
+        if _is_schedule_free_optimizer(self.optimizer):
             self.optimizer.eval()
 
         self.callback_handler.eval_dataloader = dataloader
@@ -4612,7 +4616,7 @@ class Trainer:
             inputs_gatherer = DistributedTensorGatherer(world_size, num_examples, make_multiple_of=make_multiple_of)
 
         model.eval()
-        if "ScheduleFree" in self.optimizer.__class__.__name__:
+        if _is_schedule_free_optimizer(self.optimizer):
             self.optimizer.eval()
 
         if args.past_index >= 0:

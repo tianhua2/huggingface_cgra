@@ -20,6 +20,7 @@ import shutil
 import tempfile
 import unittest
 
+import numpy as np
 import pytest
 
 from transformers import MgpstrTokenizer
@@ -27,20 +28,20 @@ from transformers.models.mgp_str.tokenization_mgp_str import VOCAB_FILES_NAMES
 from transformers.testing_utils import require_torch, require_vision
 from transformers.utils import IMAGE_PROCESSOR_NAME, is_torch_available, is_vision_available
 
-from ...test_processing_common import ProcessorTesterMixin
-
 
 if is_torch_available():
     import torch
 
 
 if is_vision_available():
+    from PIL import Image
+
     from transformers import MgpstrProcessor, ViTImageProcessor
 
 
 @require_torch
 @require_vision
-class MgpstrProcessorTest(ProcessorTesterMixin, unittest.TestCase):
+class MgpstrProcessorTest(unittest.TestCase):
     image_processing_class = ViTImageProcessor if is_vision_available() else None
 
     @property
@@ -68,6 +69,17 @@ class MgpstrProcessorTest(ProcessorTesterMixin, unittest.TestCase):
         self.image_processor_file = os.path.join(self.tmpdirname, IMAGE_PROCESSOR_NAME)
         with open(self.image_processor_file, "w", encoding="utf-8") as fp:
             json.dump(image_processor_map, fp)
+
+    # We copy here rather than use the ProcessorTesterMixin as this processor has a `char_tokenizer` instad of a
+    # tokenizer attribute, which means all the tests would need to be overridden.
+    @require_vision
+    def prepare_image_inputs(self):
+        """This function prepares a list of PIL images, or a list of numpy arrays if one specifies numpify=True,
+        or a list of PyTorch tensors if one specifies torchify=True.
+        """
+        image_inputs = [np.random.randint(255, size=(3, 30, 400), dtype=np.uint8)]
+        image_inputs = [Image.fromarray(np.moveaxis(x, 0, -1)) for x in image_inputs]
+        return image_inputs
 
     def get_tokenizer(self, **kwargs):
         return MgpstrTokenizer.from_pretrained(self.tmpdirname, **kwargs)

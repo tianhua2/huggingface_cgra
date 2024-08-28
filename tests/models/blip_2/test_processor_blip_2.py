@@ -29,6 +29,8 @@ if is_vision_available():
 
 @require_vision
 class Blip2ProcessorTest(ProcessorTesterMixin, unittest.TestCase):
+    processor_class = Blip2Processor
+
     def setUp(self):
         self.tmpdirname = tempfile.mkdtemp()
 

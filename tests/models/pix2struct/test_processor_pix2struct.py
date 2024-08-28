@@ -36,6 +36,8 @@ if is_vision_available():
 @require_vision
 @require_torch
 class Pix2StructProcessorTest(ProcessorTesterMixin, unittest.TestCase):
+    processor_class = Pix2StructProcessor
+
     def setUp(self):
         self.tmpdirname = tempfile.mkdtemp()
 

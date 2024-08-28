@@ -41,6 +41,8 @@ if is_vision_available():
 
 @require_vision
 class FlavaProcessorTest(ProcessorTesterMixin, unittest.TestCase):
+    processor_class = FlavaProcessor
+
     def setUp(self):
         self.tmpdirname = tempfile.mkdtemp()
 

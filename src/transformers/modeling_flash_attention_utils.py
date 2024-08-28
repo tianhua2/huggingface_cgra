@@ -56,6 +56,68 @@ def _get_unpad_data(attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.T
         max_seqlen_in_batch,
     )
 
+def _get_unpad_data_for_concatenated_sequences(attention_mask_in_length: torch.Tensor, seqlen: int) -> Tuple[torch.Tensor, torch.Tensor, int]:
+    """
+    Supports concatenating short samples in one sequence. The attention_mask_in_length is utilized to mask other short samples. It helps efficient training of variant lengths-based samples (e.g., the supervised fine-tuning task in large language model).
+    The motivation for this function is explained [here](https://github.com/Dao-AILab/flash-attention/issues/432#issuecomment-1668822286).
+
+    For example, if batch = 3 and seqlen = 6, the attention_mask_in_length is:
+        ```
+        [
+          [2, 3],
+          [3, 2],
+          [6, 0]
+        ]
+        ```
+    , which refers to the 3D-attention mask:
+        ```
+        [
+          [
+            [1, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0],
+            [0, 0, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 0],
+            [0, 0, 0, 0, 0, 1]
+          ],
+          [
+            [1, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 0, 1]
+          ],
+          [
+            [1, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 0],
+            [1, 1, 1, 1, 0, 0],
+            [1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1]
+          ]
+        ]
+        ```.
+
+    Arguments:
+        attention_mask_in_length: (batch, sub_seq_num), int, a nonzero number (e.g., 1, 2, 3, etc.) means length of concatenated sequence in b-th batch, and 0 means none.
+    Return:
+        cu_seqlens: (batch + 1), the cumulative sequence lengths, used to index into hidden_states.
+        max_seqlen_in_batch: int
+    """
+    length = attention_mask_in_length.sum(dim=-1)
+    attention_mask_2d = torch.arange(seqlen, device=length.device, dtype=length.dtype).expand(len(length), seqlen) < length.unsqueeze(1)
+    real_indices_idx = torch.nonzero(attention_mask_in_length.flatten(), as_tuple=False).flatten()
+    seqlens_in_batch = attention_mask_in_length.flatten()[real_indices_idx]
+    indices = torch.nonzero(attention_mask_2d.flatten(), as_tuple=False).flatten()
+    max_seqlen_in_batch = seqlens_in_batch.max().item()
+    cu_seqlens = F.pad(torch.cumsum(seqlens_in_batch, dim=0, dtype=torch.torch.int32), (1, 0))
+    return (
+        indices,
+        cu_seqlens,
+        max_seqlen_in_batch,
+    )
+
 
 def _upad_input(
     query_layer: torch.Tensor,
@@ -78,7 +140,10 @@ def _upad_input(
         value_layer (`torch.Tensor`):
             Value state with padding. Shape: (batch_size, kv_seq_len, num_key_value_heads, head_dim).
         attention_mask (`torch.Tensor`):
-            Boolean or int tensor of shape (batch_size, sequence_length), 1 means valid and 0 means not valid.
+            Attention mask Tensor. Shape: (batch_size, sequence_length).
+            Data type:
+                1. Boolean or int, 1 means valid and 0 means not valid.
+                2. int (>=1), nonzero means a sub-sequence length.
         query_length (`int`):
             Target length.
 
@@ -96,8 +161,12 @@ def _upad_input(
         (max_seqlen_in_batch_q, max_seqlen_in_batch_k) (`Tuple[int]`):
             Maximum sequence length in batch (`max_seqlen_in_batch_q` for the target sequence i.e. query, `max_seqlen_in_batch_k` for the source sequence i.e. key/value).
     """
-    indices_k, cu_seqlens_k, max_seqlen_in_batch_k = _get_unpad_data(attention_mask)
     batch_size, kv_seq_len, num_key_value_heads, head_dim = key_layer.shape
+    # concatenated sequences in the training mode
+    if (attention_mask > 1).any() and query_length != 1 and query_length == kv_seq_len:
+        indices_k, cu_seqlens_k, max_seqlen_in_batch_k = _get_unpad_data_for_concatenated_sequences(attention_mask, query_length)
+    else:
+        indices_k, cu_seqlens_k, max_seqlen_in_batch_k = _get_unpad_data(attention_mask)
 
     key_layer = index_first_axis(key_layer.reshape(batch_size * kv_seq_len, num_key_value_heads, head_dim), indices_k)
     value_layer = index_first_axis(
@@ -207,8 +276,10 @@ def _flash_attention_forward(
         value_states (`torch.Tensor`):
             Input value states to be passed to Flash Attention API
         attention_mask (`torch.Tensor`):
-            The padding mask - corresponds to a tensor of size `(batch_size, seq_len)` where 0 stands for the
-            position of padding tokens and 1 for the position of non-padding tokens.
+            The padding mask - corresponds to a tensor of size `(batch_size, seq_len)`.
+            Data type:
+                1. Boolean or int, where 0 stands for the position of padding tokens and 1 for the position of non-padding tokens.
+                2. int (>=1), nonzero means a sub-sequence length.
         dropout (`float`):
             Attention dropout
         softmax_scale (`float`, *optional*):
@@ -241,6 +312,7 @@ def _flash_attention_forward(
         flash_kwargs["softcap"] = softcap
 
     # Contains at least one padding token in the sequence
+    # If attention_mask contains value > 1, nonzero means a sub-sequence length.
     if attention_mask is not None:
         batch_size = query_states.shape[0]
         query_states, key_states, value_states, indices_q, cu_seq_lens, max_seq_lens = _upad_input(

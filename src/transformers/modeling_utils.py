@@ -59,7 +59,6 @@ from .quantizers import AutoHfQuantizer, HfQuantizer
 from .quantizers.quantizers_utils import get_module_from_name
 from .safetensors_conversion import auto_conversion
 from .utils import (
-    ACCELERATE_MIN_VERSION,
     ADAPTER_SAFE_WEIGHTS_NAME,
     ADAPTER_WEIGHTS_NAME,
     CONFIG_NAME,
@@ -711,7 +710,7 @@ def _load_state_dict_into_model(model_to_load, state_dict, start_prefix, assign_
             new_keys.append(new_key)
     renamed_keys = {**renamed_gamma, **renamed_beta}
     if renamed_keys:
-        warning_msg += "contains parameters that have been renamed internally (a few are listed below but more are present in the model):\n"
+        warning_msg += "contains parameters that have been renamed internally(\"gamma\" and \"beta\" in parameters)  (a few are listed below but more are present in the model):\n"
         for old_key, new_key in renamed_keys.items():
             warning_msg += f"* `{old_key}` -> `{new_key}`\n"
         warning_msg += "If you are using a model from the Hub, consider submitting a PR to adjust these weights and help future users."
@@ -2571,21 +2570,26 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
         # Save the config
         if is_main_process:
             if not _hf_peft_config_loaded:
-                # If the model config has set attributes that should be in the generation config, move them there.
-                misplaced_generation_parameters = model_to_save.config._get_non_default_generation_parameters()
-                if self.can_generate() and len(misplaced_generation_parameters) > 0:
-                    warnings.warn(
-                        "Moving the following attributes in the config to the generation config: "
-                        f"{misplaced_generation_parameters}. You are seeing this warning because you've set "
-                        "generation parameters in the model config, as opposed to in the generation config.",
-                        UserWarning,
-                    )
-                    for param_name, param_value in misplaced_generation_parameters.items():
-                        setattr(model_to_save.generation_config, param_name, param_value)
-                        setattr(model_to_save.config, param_name, None)
-
                 model_to_save.config.save_pretrained(save_directory)
             if self.can_generate():
+                # generation config built from the model config + the model config holds generation kwargs -> generate
+                # may revert to legacy behavior if the two don't match
+                if (
+                    model_to_save.generation_config._from_model_config
+                    and model_to_save.config._has_non_default_generation_parameters()
+                ):
+                    new_generation_config = GenerationConfig.from_model_config(model_to_save.config)
+                    if new_generation_config != model_to_save.generation_config:
+                        logger.warning(
+                            "Your generation config was originally created from the model config, but the model "
+                            "config has changed since then. Unless you pass the `generation_config` argument to this "
+                            "model's `generate` calls, they will revert to the legacy behavior where the base "
+                            "`generate` parameterization is loaded from the model config instead. "
+                            "To avoid this behavior and this warning, we recommend you to overwrite the generation "
+                            "config model attribute before calling the model's `save_pretrained`, preferably also "
+                            "removing any generation kwargs from the model config. This warning will be raised to an "
+                            "exception in v4.41."
+                        )
                 model_to_save.generation_config.save_pretrained(save_directory)
 
             if _hf_peft_config_loaded:
@@ -2763,7 +2767,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
         if module_map:
             filename_to_tensors = logging.tqdm(filename_to_tensors, desc="Saving checkpoint shards")
         for shard_file, tensors in filename_to_tensors:
-            shard = {tensor: state_dict[tensor].contiguous() for tensor in tensors}
+            shard = {tensor: state_dict[tensor] for tensor in tensors}
             # remake shard with onloaded parameters if necessary
             if module_map:
                 if accelerate_version < version.parse("0.31"):
@@ -3051,7 +3055,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
             > Parameters for big model inference
 
             low_cpu_mem_usage(`bool`, *optional*):
-                Tries not to use more than 1x model size in CPU memory (including peak memory) while loading the model.
+                Tries to not use more than 1x model size in CPU memory (including peak memory) while loading the model.
                 Generally should be combined with a `device_map` (such as `"auto"`) for best results.
                 This is an experimental feature and a subject to change at any moment.
                 </Tip>
@@ -3312,7 +3316,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 )
             elif not is_accelerate_available():
                 raise ImportError(
-                    f"Using `low_cpu_mem_usage=True` or a `device_map` requires Accelerate: `pip install 'accelerate>={ACCELERATE_MIN_VERSION}'`"
+                    "Using `low_cpu_mem_usage=True` or a `device_map` requires Accelerate: `pip install accelerate`"
                 )
 
         # handling bnb config from kwargs, remove after `load_in_{4/8}bit` deprecation.
@@ -4104,6 +4108,36 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
         expected_keys = list(model_state_dict.keys())
         prefix = model.base_model_prefix
 
+        error_msgs = []
+
+        old_keys = []
+        new_keys = []
+        renamed_gamma = {}
+        renamed_beta = {}
+        warning_msg = f"This model {type(model)}"
+
+        original_loaded_keys = loaded_keys
+        for key in loaded_keys:
+            new_key = None
+            if "gamma" in key:
+                # We add only the first key as an example
+                new_key = key.replace("gamma", "weight")
+                renamed_gamma[key] = new_key if not renamed_gamma else renamed_gamma
+            if "beta" in key:
+                # We add only the first key as an example
+                new_key = key.replace("beta", "bias")
+                renamed_beta[key] = new_key if not renamed_beta else renamed_beta
+            if new_key:
+                old_keys.append(key)
+                new_keys.append(new_key)
+        renamed_keys = {**renamed_gamma, **renamed_beta}
+        if renamed_keys:
+            warning_msg += "contains parameters that have been renamed internally (a few are listed below but more are present in the model):\n"
+            logger.warning(warning_msg)
+            for old_key, new_key in renamed_keys.items():
+                warning_msg += f"* `{old_key}` -> `{new_key}`\n"
+            warning_msg += "If you are using a model from the Hub, consider submitting a PR to adjust these weights and help future users."
+            logger.info(warning_msg)
         def _fix_key(key):
             if "beta" in key:
                 return key.replace("beta", "bias")
@@ -4111,7 +4145,6 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 return key.replace("gamma", "weight")
             return key
 
-        original_loaded_keys = loaded_keys
         loaded_keys = [_fix_key(key) for key in loaded_keys]
 
         if len(prefix) > 0:
@@ -4134,7 +4167,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
             expected_keys = [".".join([prefix, s]) for s in expected_keys]
 
         missing_keys = sorted(set(expected_keys) - set(loaded_keys))
-        unexpected_keys = set(loaded_keys) - set(expected_keys)
+        unexpected_keys = set(loaded_keys) - set(expected_keys) - set(_.replace("gamma", "weight").replace("beta", "bias") for _ in renamed_keys)
 
         # Remove nonpersistent buffers from unexpected keys: they are not in the state dict but will be in the model
         # buffers

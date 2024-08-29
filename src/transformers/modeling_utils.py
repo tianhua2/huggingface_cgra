@@ -4128,12 +4128,13 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 new_keys.append(new_key)
         renamed_keys = {**renamed_gamma, **renamed_beta}
         if renamed_keys:
-            warning_msg += "contains parameters that have been renamed internally (\"gamma\" and \"beta\" in parameters) (a few are listed below but more are present in the model):\n"
+            warning_msg += 'contains parameters that have been renamed internally ("gamma" and "beta" in parameters) (a few are listed below but more are present in the model):\n'
             logger.warning(warning_msg)
             for old_key, new_key in renamed_keys.items():
                 warning_msg += f"* `{old_key}` -> `{new_key}`\n"
             warning_msg += "If you are using a model from the Hub, consider submitting a PR to adjust these weights and help future users."
             logger.info(warning_msg)
+
         def _fix_key(key):
             if "beta" in key:
                 return key.replace("beta", "bias")
@@ -4165,7 +4166,9 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
 
         missing_keys = sorted(set(expected_keys) - set(loaded_keys))
         unexpected_keys = set(loaded_keys) - set(expected_keys)
-        unexpected_keys = unexpected_keys - {_.replace("gamma", "weight").replace("beta", "bias") for _ in renamed_keys} #remove renamed keys
+        unexpected_keys = unexpected_keys - {
+            _.replace("gamma", "weight").replace("beta", "bias") for _ in renamed_keys
+        }  # remove renamed keys
 
         # Remove nonpersistent buffers from unexpected keys: they are not in the state dict but will be in the model
         # buffers
@@ -5232,6 +5235,3 @@ def get_disk_only_shard_files(device_map, sharded_metadata, start_prefix):
         files_content[filename].append(device_map[weight_name])
 
     return [fname for fname, devices in files_content.items() if set(devices) == {"disk"}]
-
-
-

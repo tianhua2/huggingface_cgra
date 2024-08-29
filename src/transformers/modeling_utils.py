@@ -4164,7 +4164,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
             expected_keys = [".".join([prefix, s]) for s in expected_keys]
 
         missing_keys = sorted(set(expected_keys) - set(loaded_keys))
-        unexpected_keys = set(loaded_keys) - set(expected_keys)
+        unexpected_keys = set(loaded_keys) - set(expected_keys) - set(_.replace("gamma", "weight").replace("beta", "bias") for _ in renamed_keys)
 
         # Remove nonpersistent buffers from unexpected keys: they are not in the state dict but will be in the model
         # buffers

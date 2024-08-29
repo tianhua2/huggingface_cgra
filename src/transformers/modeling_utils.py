@@ -4132,7 +4132,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 new_keys.append(new_key)
         renamed_keys = {**renamed_gamma, **renamed_beta}
         if renamed_keys:
-            warning_msg += "contains parameters that have been renamed internally (a few are listed below but more are present in the model):\n"
+            warning_msg += "contains parameters that have been renamed internally (\"gamma\" and \"beta\" in parameters) (a few are listed below but more are present in the model):\n"
             logger.warning(warning_msg)
             for old_key, new_key in renamed_keys.items():
                 warning_msg += f"* `{old_key}` -> `{new_key}`\n"

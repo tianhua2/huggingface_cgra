@@ -411,9 +411,10 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
     @require_bitsandbytes
     def test_small_model_integration_test_batch_different_resolutions(self):
         model = Qwen2VLForConditionalGeneration.from_pretrained("Qwen/Qwen2-VL-7B-Instruct", load_in_4bit=True)
-        text, vision_infos = self.processor.apply_chat_template(
+        text = self.processor.apply_chat_template(
             self.messages, tokenize=False, add_generation_prompt=True
         )
+
         messages2 = [
             {
                 "role": "user",
@@ -428,11 +429,18 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
                 ],
             }
         ]
-        text2, vision_infos2 = self.processor.apply_chat_template(
+        text2 = self.processor.apply_chat_template(
             messages2, tokenize=False, add_generation_prompt=True
         )
+
+        vision_infos = self.extract_vision_info(messages2)
+        image_url = vision_infos[0]["image"]
+        image_input2 = Image.open(requests.get(image_url, stream=True).raw)
+
         inputs = self.processor(
-            text=[text, text2], vision_infos=[vision_infos, vision_infos2], return_tensors="pt"
+            text=[text, text2], 
+            images=[self.image, image_input2],
+            return_tensors="pt",
         ).to(torch_device)
 
         # it should not matter whether two images are the same size or not
@@ -446,3 +454,31 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
             self.processor.batch_decode(output, skip_special_tokens=True),
             EXPECTED_DECODED_TEXT,
         )
+    
+    def extract_vision_info(self, conversations: list[dict] | list[list[dict]]) -> list[dict]:
+        """
+        Extracts vision information (image or video data) from a list of conversations.
+
+        Args:
+            conversations: A list of conversations, where each conversation is either a dictionary
+                        or a list of dictionaries representing messages.
+
+        Returns:
+            A list of dictionaries, each containing information about an image or video found
+            within the conversations.
+        """
+        vision_infos = []
+        if isinstance(conversations[0], dict):
+            conversations = [conversations]
+        for conversation in conversations:
+            for message in conversation:
+                if isinstance(message["content"], list):
+                    for ele in message["content"]:
+                        if (
+                            "image" in ele
+                            or "image_url" in ele
+                            or "video" in ele
+                            or ele["type"] in ("image", "image_url", "video")
+                        ):
+                            vision_infos.append(ele)
+        return vision_infos

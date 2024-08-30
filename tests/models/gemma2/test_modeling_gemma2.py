@@ -59,7 +59,6 @@ class Gemma2ModelTest(GemmaModelTest, unittest.TestCase):
         if is_torch_available()
         else ()
     )
-    all_generative_model_classes = ()
     pipeline_model_mapping = (
         {
             "feature-extraction": Gemma2Model,

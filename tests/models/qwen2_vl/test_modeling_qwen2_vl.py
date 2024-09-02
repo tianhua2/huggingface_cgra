@@ -438,7 +438,7 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
         image_input2 = Image.open(requests.get(image_url, stream=True).raw)
 
         inputs = self.processor(
-            text=[text, text2], 
+            text=[text, text2],
             images=[self.image, image_input2],
             return_tensors="pt",
         ).to(torch_device)
@@ -454,7 +454,7 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
             self.processor.batch_decode(output, skip_special_tokens=True),
             EXPECTED_DECODED_TEXT,
         )
-    
+
     def extract_vision_info(self, conversations: list[dict] | list[list[dict]]) -> list[dict]:
         """
         Extracts vision information (image or video data) from a list of conversations.

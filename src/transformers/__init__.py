@@ -451,6 +451,7 @@ _import_structure = {
         "GitProcessor",
         "GitVisionConfig",
     ],
+    "models.glm": ["GLMConfig", "GLMTokenizer"],
     "models.glpn": ["GLPNConfig"],
     "models.gpt2": [
         "GPT2Config",
@@ -1051,6 +1052,7 @@ else:
     _import_structure["models.fnet"].append("FNetTokenizerFast")
     _import_structure["models.funnel"].append("FunnelTokenizerFast")
     _import_structure["models.gemma"].append("GemmaTokenizerFast")
+    _import_structure["models.glm"].append("GLMTokenizerFast")
     _import_structure["models.gpt2"].append("GPT2TokenizerFast")
     _import_structure["models.gpt_neox"].append("GPTNeoXTokenizerFast")
     _import_structure["models.gpt_neox_japanese"].append("GPTNeoXJapaneseTokenizer")
@@ -2259,6 +2261,15 @@ else:
             "GitModel",
             "GitPreTrainedModel",
             "GitVisionModel",
+        ]
+    )
+    _import_structure["models.glm"].extend(
+        [
+            "GLMForCausalLM",
+            "GLMForSequenceClassification",
+            "GLMForTokenClassification",
+            "GLMModel",
+            "GLMPreTrainedModel",
         ]
     )
     _import_structure["models.glpn"].extend(
@@ -5213,6 +5224,10 @@ if TYPE_CHECKING:
         GitProcessor,
         GitVisionConfig,
     )
+    from .models.glm import (
+        GLMConfig,
+        GLMTokenizer,
+    )
     from .models.glpn import GLPNConfig
     from .models.gpt2 import (
         GPT2Config,
@@ -5858,6 +5873,7 @@ if TYPE_CHECKING:
         from .models.fnet import FNetTokenizerFast
         from .models.funnel import FunnelTokenizerFast
         from .models.gemma import GemmaTokenizerFast
+        from .models.glm import GLMTokenizerFast
         from .models.gpt2 import GPT2TokenizerFast
         from .models.gpt_neox import GPTNeoXTokenizerFast
         from .models.gpt_neox_japanese import GPTNeoXJapaneseTokenizer
@@ -6897,6 +6913,13 @@ if TYPE_CHECKING:
             GitModel,
             GitPreTrainedModel,
             GitVisionModel,
+        )
+        from .models.glm import (
+            GLMForCausalLM,
+            GLMForSequenceClassification,
+            GLMForTokenClassification,
+            GLMModel,
+            GLMPreTrainedModel,
         )
         from .models.glpn import (
             GLPNForDepthEstimation,

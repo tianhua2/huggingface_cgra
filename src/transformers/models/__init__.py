@@ -109,6 +109,7 @@ from . import (
     grounding_dino,
     groupvit,
     herbert,
+    hhemv2,
     hiera,
     hubert,
     ibert,

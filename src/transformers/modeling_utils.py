@@ -4124,8 +4124,8 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
 
         old_keys = []
         new_keys = []
-        renamed_gamma = {}
-        renamed_beta = {}
+        renamed_keys = {}
+
         warning_msg = f"This model {type(model)}"
 
         original_loaded_keys = loaded_keys
@@ -4136,22 +4136,21 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
             if "gamma" in key:
                 return key.replace("gamma", "weight")
             return None
-        
-       
+
         for i, key in enumerate(loaded_keys):
             new_key = _fix_key(key)
             if new_key:
                 old_keys.append(key)
                 new_keys.append(new_key)
                 renamed_keys[key] = new_key
-                loaded_keys[i] = new_key  
-        
+                loaded_keys[i] = new_key
+
         if renamed_keys:
             warning_msg += 'contains parameters that have been renamed internally ("gamma" and "beta" in parameters) (a few are listed below but more are present in the model):\n'
             logger.warning(warning_msg)
             for old_key, new_key in renamed_keys.items():
                 warning_msg += f"* `{old_key}` -> `{new_key}`\n"
-            warning_msg += "If you are using a model from the Hub, consider submitting a PR to adjust these weights and help future users."           
+            warning_msg += "If you are using a model from the Hub, consider submitting a PR to adjust these weights and help future users."
             logger.info(warning_msg)
 
         if len(prefix) > 0:

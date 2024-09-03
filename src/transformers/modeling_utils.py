@@ -4129,37 +4129,30 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
         warning_msg = f"This model {type(model)}"
 
         original_loaded_keys = loaded_keys
-        for key in loaded_keys:
-            new_key = None
-            if "gamma" in key:
-                # We add only the first key as an example
-                new_key = key.replace("gamma", "weight")
-                renamed_gamma[key] = new_key if not renamed_gamma else renamed_gamma
-            if "beta" in key:
-                # We add only the first key as an example
-                new_key = key.replace("beta", "bias")
-                renamed_beta[key] = new_key if not renamed_beta else renamed_beta
-            if new_key:
-                old_keys.append(key)
-                new_keys.append(new_key)
-        renamed_keys = {**renamed_gamma, **renamed_beta}
-        if renamed_keys:
-            warning_msg += 'contains parameters that have been renamed internally ("gamma" and "beta" in parameters) (a few are listed below but more are present in the model):\n'
-            logger.warning(warning_msg)
-            for old_key, new_key in renamed_keys.items():
-                warning_msg += f"* `{old_key}` -> `{new_key}`\n"
-            warning_msg += "If you are using a model from the Hub, consider submitting a PR to adjust these weights and help future users."
-            logger.info(warning_msg)
 
         def _fix_key(key):
             if "beta" in key:
                 return key.replace("beta", "bias")
             if "gamma" in key:
                 return key.replace("gamma", "weight")
-            return key
-
-        original_loaded_keys = loaded_keys
-        loaded_keys = [_fix_key(key) for key in loaded_keys]
+            return None
+        
+       
+        for i, key in enumerate(loaded_keys):
+            new_key = _fix_key(key)
+            if new_key:
+                old_keys.append(key)
+                new_keys.append(new_key)
+                renamed_keys[key] = new_key
+                loaded_keys[i] = new_key  
+        
+        if renamed_keys:
+            warning_msg += 'contains parameters that have been renamed internally ("gamma" and "beta" in parameters) (a few are listed below but more are present in the model):\n'
+            logger.warning(warning_msg)
+            for old_key, new_key in renamed_keys.items():
+                warning_msg += f"* `{old_key}` -> `{new_key}`\n"
+            warning_msg += "If you are using a model from the Hub, consider submitting a PR to adjust these weights and help future users."           
+            logger.info(warning_msg)
 
         if len(prefix) > 0:
             has_prefix_module = any(s.startswith(prefix) for s in loaded_keys)

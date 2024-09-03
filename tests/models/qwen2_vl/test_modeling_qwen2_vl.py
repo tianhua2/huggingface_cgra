@@ -394,7 +394,9 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
             {"role": "user", "content": "Who are you?"},
         ]
         text2 = self.processor.apply_chat_template(messages2, tokenize=False, add_generation_prompt=True)
-        inputs = self.processor(text=[text, text2], images=[self.image], return_tensors="pt").to(torch_device)
+        inputs = self.processor(text=[text, text2], images=[self.image], padding=True, return_tensors="pt").to(
+            torch_device
+        )
 
         # it should not matter whether two images are the same size or not
         output = model.generate(**inputs, max_new_tokens=30)
@@ -438,6 +440,7 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
         inputs = self.processor(
             text=[text, text2],
             images=[self.image, image_input2],
+            padding=True,
             return_tensors="pt",
         ).to(torch_device)
 

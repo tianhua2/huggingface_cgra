@@ -467,6 +467,18 @@ class EosTokenCriteria(StoppingCriteria):
         return is_done
 
 
+class ConfidenceCriteria(StoppingCriteria):
+    def __init__(self, assistant_confidence_threshold):
+        self.assistant_confidence_threshold = assistant_confidence_threshold
+
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> torch.BoolTensor:
+        probs = scores[-1].softmax(-1)
+        p = probs[0, input_ids[0, -1]].item()
+        if p < self.assistant_confidence_threshold:
+            return True
+        return False
+
+
 class StoppingCriteriaList(list):
     @add_start_docstrings(STOPPING_CRITERIA_INPUTS_DOCSTRING)
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> torch.BoolTensor:

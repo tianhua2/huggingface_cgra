@@ -61,7 +61,12 @@ jobs:
       - name: NVIDIA-SMI
         run: |
           nvidia-smi
-      
+
+      - name: Check python file
+        working-directory: /transformers
+        run: |
+          python3 check_env.py
+
       - name: Tailscale # In order to be able to SSH when a test fails
         uses: huggingface/tailscale-action@main
         with:

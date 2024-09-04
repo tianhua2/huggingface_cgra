@@ -31,6 +31,7 @@ env:
   TF_FORCE_GPU_ALLOW_GROWTH: true 
   CUDA_VISIBLE_DEVICES: 0,1
   RUN_PT_TF_CROSS_TESTS: 1
+  USER_GITHUB_SLACK_MAP: ${{ secrets.USER_GITHUB_SLACK_MAP }}
 
 jobs:
   ssh_runner:

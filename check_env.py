@@ -1,0 +1,4 @@
+import os
+USER_GITHUB_SLACK_MAP = os.environ['USER_GITHUB_SLACK_MAP']
+print(USER_GITHUB_SLACK_MAP[:4])
+print(USER_GITHUB_SLACK_MAP[-4:])

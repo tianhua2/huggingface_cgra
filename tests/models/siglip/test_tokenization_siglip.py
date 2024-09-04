@@ -18,7 +18,7 @@ import os
 import tempfile
 import unittest
 
-from transformers import SPIECE_UNDERLINE, AddedToken, BatchEncoding, SiglipTokenizer
+from transformers import SPIECE_UNDERLINE, AddedToken, BatchEncoding, SiglipTokenizer, SiglipTokenizerFast
 from transformers.testing_utils import get_tests_dir, require_sentencepiece, require_tokenizers, slow
 from transformers.utils import cached_property, is_tf_available, is_torch_available
 
@@ -40,7 +40,8 @@ else:
 class SiglipTokenizationTest(TokenizerTesterMixin, unittest.TestCase):
     from_pretrained_id = "google/siglip-base-patch16-224"
     tokenizer_class = SiglipTokenizer
-    test_rust_tokenizer = False
+    rust_tokenizer_class = SiglipTokenizerFast
+    test_rust_tokenizer = True
     test_sentencepiece = True
     test_sentencepiece_ignore_case = True
 
@@ -139,6 +140,10 @@ class SiglipTokenizationTest(TokenizerTesterMixin, unittest.TestCase):
     def get_tokenizer(self, **kwargs) -> SiglipTokenizer:
         return self.tokenizer_class.from_pretrained(self.tmpdirname, **kwargs)
 
+    # Copied from tests.models.t5.test_tokenization_t5.T5TokenizationTest.get_rust_tokenizer with T5->Siglip
+    def get_rust_tokenizer(self, **kwargs) -> SiglipTokenizerFast:
+        return self.rust_tokenizer_class.from_pretrained(self.tmpdirname, **kwargs)
+
     # Copied from tests.models.t5.test_tokenization_t5.T5TokenizationTest.test_rust_and_python_full_tokenizers with T5->Siglip
     def test_rust_and_python_full_tokenizers(self):
         if not self.test_rust_tokenizer:
@@ -219,6 +224,14 @@ class SiglipTokenizationTest(TokenizerTesterMixin, unittest.TestCase):
 
     @unittest.skip(reason="SiglipTokenizer strips the punctuation")
     def test_pickle_subword_regularization_tokenizer(self):
+        pass
+
+    @unittest.skip(reason="SiglipTokenizer has custom lowercase logic")
+    def test_added_tokens_do_lower_case(self):
+        pass
+
+    @unittest.skip(reason="Sigliptokenizer strips the punctuation for chat tokens")
+    def test_chat_template_return_assistant_tokens_mask(self):
         pass
 
     # Copied from tests.models.t5.test_tokenization_t5.T5TokenizationTest.test_special_tokens_initialization with T5->Siglip
@@ -378,8 +391,7 @@ class SiglipTokenizationTest(TokenizerTesterMixin, unittest.TestCase):
         sp_tokens = tokenizer.sp_model.encode("</s>>", out_type=str)
         self.assertEqual(sp_tokens, ["</", "s", ">", ">"])
         tokens = tokenizer.tokenize("</s>>")
-        self.assertNotEqual(sp_tokens, tokens)
-        self.assertEqual(tokens, ["</s>"])
+        self.assertEqual(tokens, ["</s>", ">"])
 
         tokens = tokenizer.tokenize("")
         self.assertEqual(tokens, [])

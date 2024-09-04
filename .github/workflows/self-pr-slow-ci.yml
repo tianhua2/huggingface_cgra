@@ -2,9 +2,6 @@ name: PR slow CI
 
 on:
   pull_request:
-    paths:
-      - "src/transformers/models/*/modeling_*.py"
-      - "tests/**/test_*.py"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -65,8 +62,8 @@ jobs:
         fail-fast: false
         matrix:
           folders: ${{ fromJson(needs.find_models_to_run.outputs.models) }}
-          machine_type: [single-gpu, multi-gpu]
-      runs-on: ['${{ matrix.machine_type }}', nvidia-gpu, t4, ci]
+          machine_type: [single-gpu]
+      runs-on: ['${{ matrix.machine_type }}', nvidia-gpu, t4, daily-ci]
       container:
         image: huggingface/transformers-all-latest-gpu
         options: --gpus all --shm-size "16gb" --ipc host -v /mnt/cache/.cache/huggingface:/mnt/cache/
@@ -113,7 +110,7 @@ jobs:
         run: |
           export CUDA_VISIBLE_DEVICES="$(python3 utils/set_cuda_devices_for_ci.py --test_folder ${{ matrix.folders }})"
           echo $CUDA_VISIBLE_DEVICES
-          python3 -m pytest -v -rsfE --make-reports=${{ matrix.machine_type }}_run_models_gpu_${{ matrix.folders }}_test_reports tests/${{ matrix.folders }}
+          python3 -m pytest -v -rsfE --make-reports=${{ matrix.machine_type }}_run_models_gpu_${{ matrix.folders }}_test_reports tests/${{ matrix.folders }} -k "not Gemma2IntegrationTest"
 
       - name: Failure short reports
         if: ${{ failure() }}

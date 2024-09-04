@@ -82,7 +82,7 @@ jobs:
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "Hello Testing",
+                    "text": "Hello",
                     "emoji": true
                   }
                 },
@@ -91,19 +91,19 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "Hello Testing"
+                      "text": "Hello"
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "Hello Testing"
+                      "text": "Hello"
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "Hello Testing"
+                      "text": "Hello"
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "Hello Testing"
+                      "text": "Hello"
                     }
                   ]
                 },
@@ -111,7 +111,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "text": "Hello Testing"
+                    "text": "Hello"
                   }
                 }
               ]

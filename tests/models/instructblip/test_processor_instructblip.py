@@ -36,6 +36,8 @@ if is_vision_available():
 
 @require_vision
 class InstructBlipProcessorTest(ProcessorTesterMixin, unittest.TestCase):
+    processor_class = InstructBlipProcessor
+
     def setUp(self):
         self.tmpdirname = tempfile.mkdtemp()
 

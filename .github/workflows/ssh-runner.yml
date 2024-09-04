@@ -1,19 +1,26 @@
 name: SSH into our runners
 
 on:
-  workflow_dispatch:
-    inputs:
-      runner_type:
-        description: 'Type of runner to test (a10 or t4)'
-        required: true 
-      docker_image:
-        description: 'Name of the Docker image'
-        required: true
-      num_gpus:
-        description: 'Type of the number of gpus to use (`single` or `multi`)'
-        required: true
+  push: 
+    branches:
+      - ssh_send_dm
+#  workflow_dispatch:
+#    inputs:
+#      runner_type:
+#        description: 'Type of runner to test (a10 or t4)'
+#        required: true
+#      docker_image:
+#        description: 'Name of the Docker image'
+#        required: true
+#      num_gpus:
+#        description: 'Type of the number of gpus to use (`single` or `multi`)'
+#        required: true
+
 
 env:
+  runner_type: a10
+  docker_image: huggingface/transformers-all-latest-gpu
+  num_gpus: single
   HF_HUB_READ_TOKEN: ${{ secrets.HF_HUB_READ_TOKEN }}
   HF_HOME: /mnt/cache 
   TRANSFORMERS_IS_CI: yes 
@@ -28,9 +35,9 @@ env:
 jobs:
   ssh_runner:
     name: "SSH"
-    runs-on: ["${{ github.event.inputs.num_gpus }}-gpu", nvidia-gpu, "${{ github.event.inputs.runner_type }}", ci]
+    runs-on: ["${{ env.num_gpus }}-gpu", nvidia-gpu, "${{ env.runner_type }}", ci]
     container:
-      image: ${{ github.event.inputs.docker_image }}
+      image: ${{ env.docker_image }}
       options: --gpus all --privileged --ipc host -v /mnt/cache/.cache/huggingface:/mnt/cache/
 
     steps:

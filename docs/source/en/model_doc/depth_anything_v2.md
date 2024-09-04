@@ -78,20 +78,21 @@ If you want to do the pre- and post-processing yourself, here's how to do that:
 
 >>> with torch.no_grad():
 ...     outputs = model(**inputs)
-...     predicted_depth = outputs.predicted_depth
 
->>> # interpolate to original size
->>> prediction = torch.nn.functional.interpolate(
-...     predicted_depth.unsqueeze(1),
-...     size=image.size[::-1],
-...     mode="bicubic",
-...     align_corners=False,
+>>> # interpolate to original size and visualize the prediction
+>>> post_processed_output = image_processor.post_process_depth_estimation(
+...     outputs,
+...     target_size=[image.size[::-1]],
 ... )
 
->>> # visualize the prediction
->>> output = prediction.squeeze().cpu().numpy()
->>> formatted = (output * 255 / np.max(output)).astype("uint8")
->>> depth = Image.fromarray(formatted)
+>>> predicted_depth = post_processed_output[0]
+>>> depth = Image.fromarray(
+...     (
+...         (
+...             (predicted_depth - predicted_depth.min()) / (predicted_depth.max() - predicted_depth.min())
+...         ).detach().cpu().numpy() * 255
+...     ).astype("uint8")
+... )
 ```
 
 ## Resources

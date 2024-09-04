@@ -587,6 +587,12 @@ _import_structure = {
     ],
     "models.mpt": ["MptConfig"],
     "models.mra": ["MraConfig"],
+    "models.msclap": [
+        "MSClapAudioConfig",
+        "MSClapConfig",
+        "MSClapProcessor",
+        "MSClapTextConfig",
+    ],
     "models.mt5": ["MT5Config"],
     "models.musicgen": [
         "MusicgenConfig",
@@ -2751,6 +2757,15 @@ else:
             "MraForTokenClassification",
             "MraModel",
             "MraPreTrainedModel",
+        ]
+    )
+    _import_structure["models.msclap"].extend(
+        [
+            "MSClapAudioModel",
+            "MSClapAudioModelWithProjection",
+            "MSClapModel",
+            "MSClapPreTrainedModel",
+            "MSClapTextModelWithProjection",
         ]
     )
     _import_structure["models.mt5"].extend(
@@ -5371,6 +5386,12 @@ if TYPE_CHECKING:
     )
     from .models.mpt import MptConfig
     from .models.mra import MraConfig
+    from .models.msclap import (
+        MSClapAudioConfig,
+        MSClapConfig,
+        MSClapProcessor,
+        MSClapTextConfig,
+    )
     from .models.mt5 import MT5Config
     from .models.musicgen import (
         MusicgenConfig,
@@ -7287,6 +7308,13 @@ if TYPE_CHECKING:
             MraForTokenClassification,
             MraModel,
             MraPreTrainedModel,
+        )
+        from .models.msclap import (
+            MSClapAudioModel,
+            MSClapAudioModelWithProjection,
+            MSClapModel,
+            MSClapPreTrainedModel,
+            MSClapTextModelWithProjection,
         )
         from .models.mt5 import (
             MT5EncoderModel,

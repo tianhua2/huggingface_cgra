@@ -67,10 +67,63 @@ jobs:
         run: |
           python3 check_env.py
 
-      - name: Tailscale # In order to be able to SSH when a test fails
-        uses: huggingface/tailscale-action@main
+
+      - name: Send SSH informations to Slack channel
+        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001
         with:
-          authkey: ${{ secrets.TAILSCALE_SSH_AUTHKEY }}
-          slackChannel: ${{ secrets.SLACK_CIFEEDBACK_CHANNEL }}
-          slackToken: ${{ secrets.SLACK_CIFEEDBACK_BOT_TOKEN }}
-          waitForSSH: true
+          # Slack channel id, channel name, or user id to post message.
+          # See also: https://api.slack.com/methods/chat.postMessage#channels
+          channel-id: ${{ secrets.CI_SLACK_CHANNEL_DUMMY_TESTS }}
+          # For posting a rich message using Block Kit
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Hello Testing",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Hello Testing"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "Hello Testing"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "Hello Testing"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "Hello Testing"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "text": "Hello Testing"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_CIFEEDBACK_BOT_TOKEN }}
+
+
+#      - name: Tailscale # In order to be able to SSH when a test fails
+#        uses: huggingface/tailscale-action@main
+#        with:
+#          authkey: ${{ secrets.TAILSCALE_SSH_AUTHKEY }}
+#          slackChannel: ${{ secrets.SLACK_CIFEEDBACK_CHANNEL }}
+#          slackToken: ${{ secrets.SLACK_CIFEEDBACK_BOT_TOKEN }}
+#          waitForSSH: true

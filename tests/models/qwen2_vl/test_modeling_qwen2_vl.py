@@ -16,6 +16,7 @@
 
 import gc
 import unittest
+from typing import Dict, List, Union
 
 import requests
 
@@ -163,7 +164,9 @@ class Qwen2VLVisionText2TextModelTester:
         attention_mask = torch.ones(input_ids.shape, dtype=torch.long, device=torch_device)
         input_ids[:, torch.arange(vision_seqlen, device=torch_device) + 1] = self.image_token_id
         labels = torch.zeros(
-            (self.batch_size, self.seq_length - 1 + vision_seqlen), dtype=torch.long, device=torch_device
+            (self.batch_size, self.seq_length - 1 + vision_seqlen),
+            dtype=torch.long,
+            device=torch_device,
         )
         patch_size = self.vision_config["patch_size"]
         inputs_dict = {
@@ -392,7 +395,9 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
             {"role": "user", "content": "Who are you?"},
         ]
         text2 = self.processor.apply_chat_template(messages2, tokenize=False, add_generation_prompt=True)
-        inputs = self.processor(text=[text, text2], images=[self.image], return_tensors="pt").to(torch_device)
+        inputs = self.processor(text=[text, text2], images=[self.image], padding=True, return_tensors="pt").to(
+            torch_device
+        )
 
         # it should not matter whether two images are the same size or not
         output = model.generate(**inputs, max_new_tokens=30)
@@ -411,9 +416,8 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
     @require_bitsandbytes
     def test_small_model_integration_test_batch_different_resolutions(self):
         model = Qwen2VLForConditionalGeneration.from_pretrained("Qwen/Qwen2-VL-7B-Instruct", load_in_4bit=True)
-        text, vision_infos = self.processor.apply_chat_template(
-            self.messages, tokenize=False, add_generation_prompt=True
-        )
+        text = self.processor.apply_chat_template(self.messages, tokenize=False, add_generation_prompt=True)
+
         messages2 = [
             {
                 "role": "user",
@@ -428,11 +432,17 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
                 ],
             }
         ]
-        text2, vision_infos2 = self.processor.apply_chat_template(
-            messages2, tokenize=False, add_generation_prompt=True
-        )
+        text2 = self.processor.apply_chat_template(messages2, tokenize=False, add_generation_prompt=True)
+
+        vision_infos = self.extract_vision_info(messages2)
+        image_url = vision_infos[0]["image"]
+        image_input2 = Image.open(requests.get(image_url, stream=True).raw)
+
         inputs = self.processor(
-            text=[text, text2], vision_infos=[vision_infos, vision_infos2], return_tensors="pt"
+            text=[text, text2],
+            images=[self.image, image_input2],
+            padding=True,
+            return_tensors="pt",
         ).to(torch_device)
 
         # it should not matter whether two images are the same size or not
@@ -446,3 +456,31 @@ class Qwen2VLIntegrationTest(unittest.TestCase):
             self.processor.batch_decode(output, skip_special_tokens=True),
             EXPECTED_DECODED_TEXT,
         )
+
+    def extract_vision_info(self, conversations: Union[List[Dict], List[List[Dict]]]) -> List[Dict]:
+        """
+        Extracts vision information (image or video data) from a list of conversations.
+
+        Args:
+            conversations: A list of conversations, where each conversation is either a dictionary
+                        or a list of dictionaries representing messages.
+
+        Returns:
+            A list of dictionaries, each containing information about an image or video found
+            within the conversations.
+        """
+        vision_infos = []
+        if isinstance(conversations[0], dict):
+            conversations = [conversations]
+        for conversation in conversations:
+            for message in conversation:
+                if isinstance(message["content"], list):
+                    for ele in message["content"]:
+                        if (
+                            "image" in ele
+                            or "image_url" in ele
+                            or "video" in ele
+                            or ele["type"] in ("image", "image_url", "video")
+                        ):
+                            vision_infos.append(ele)
+        return vision_infos

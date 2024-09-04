@@ -46,7 +46,7 @@ def frac_exp2(x, bw, term):
 
         factorial *= (n + 1)
 
-      return result
+    return result
 
 def custom_int_exp(x, bw, term):
     q, scale, zero = asym_quantize(x, bw)
@@ -79,5 +79,5 @@ def custom_int_softmax(x, bw, term):
     x_exp = custom_int_exp(x, bw, term)
     x_sum = torch.tensor(0)
     for x_i in x_exp:
-      x_sum = frac_add(x_sum, x_i, bw)
+        x_sum = frac_add(x_sum, x_i, bw)
     return frac_div(x_exp, x_sum, bw)

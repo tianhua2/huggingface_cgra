@@ -132,7 +132,7 @@ class BertConfig(PretrainedConfig):
         self.layer_norm_eps = layer_norm_eps
         self.position_embedding_type = position_embedding_type
         self.use_cache = use_cache
-        self.classifier_dropout = classifier_dropout,
+        self.classifier_dropout = classifier_dropout
 
 
 class BertOnnxConfig(OnnxConfig):

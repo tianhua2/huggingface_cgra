@@ -35,9 +35,9 @@ env:
 jobs:
   ssh_runner:
     name: "SSH"
-    runs-on: ["${{ env.num_gpus }}-gpu", nvidia-gpu, "${{ env.runner_type }}", ci]
+    runs-on: ["single-gpu", nvidia-gpu, a10, ci]
     container:
-      image: ${{ env.docker_image }}
+      image: huggingface/transformers-all-latest-gpu
       options: --gpus all --privileged --ipc host -v /mnt/cache/.cache/huggingface:/mnt/cache/
 
     steps:

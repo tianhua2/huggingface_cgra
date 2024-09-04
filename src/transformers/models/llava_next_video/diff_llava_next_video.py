@@ -21,7 +21,6 @@ import torch
 import torch.utils.checkpoint
 from torch import nn
 
-from transformers import PretrainedConfig
 from transformers.models.llava_next.modeling_llava_next import (
     LlavaNextCausalLMOutputWithPast,
     LlavaNextForConditionalGeneration,
@@ -30,6 +29,7 @@ from transformers.models.llava_next.modeling_llava_next import (
 )
 
 from ...cache_utils import Cache
+from ...configuration_utils import PretrainedConfig
 from ...utils import (
     logging,
     replace_return_docstrings,

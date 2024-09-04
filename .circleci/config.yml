@@ -110,7 +110,7 @@ jobs:
         parallelism: 1
         steps:
             - checkout
-            - run: uv pip install -e .
+            - run: uv pip install -e ".[quality]"
             - run:
                 name: Show installed libraries and their versions
                 command: pip freeze | tee installed.txt
@@ -135,13 +135,14 @@ jobs:
         parallelism: 1
         steps:
             - checkout
-            - run: uv pip install -e .
+            - run: uv pip install -e ".[quality]"
             - run:
                 name: Show installed libraries and their versions
                 command: pip freeze | tee installed.txt
             - store_artifacts:
                   path: ~/transformers/installed.txt
             - run: python utils/check_copies.py
+            - run: python utils/check_diff_conversion.py
             - run: python utils/check_table.py
             - run: python utils/check_dummies.py
             - run: python utils/check_repo.py

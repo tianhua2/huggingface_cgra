@@ -4,38 +4,23 @@
 #         the file from the diff. If any change should be done, please apply the change to the
 #                           diff.py file directly. One of our CI enforces this
 #           🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨
-# coding=utf-8
-# Copyright 2024 Google Inc. HuggingFace Inc. team. All rights reserved.
-#
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Example where we only want to overwrite the defaults of an init
+
+from transformers import PretrainedConfig
 
 
-from ...configuration_utils import PretrainedConfig
-
-
-class Gemma2Config(PretrainedConfig):
+class NewModelConfig(PretrainedConfig):
     r"""
-    This is the configuration class to store the configuration of a [`Gemma2Model`]. It is used to instantiate an Gemma2
+    This is the configuration class to store the configuration of a [`NewModelModel`]. It is used to instantiate an NewModel
     model according to the specified arguments, defining the model architecture. Instantiating a configuration with the
-    defaults will yield a similar configuration to that of the Gemma2-7B.
-    e.g. [google/gemma2-7b](https://huggingface.co/google/gemma2-7b)
+    defaults will yield a similar configuration to that of the NewModel-7B.
+    e.g. [google/new_model-7b](https://huggingface.co/google/new_model-7b)
     Configuration objects inherit from [`PretrainedConfig`] and can be used to control the model outputs. Read the
     documentation from [`PretrainedConfig`] for more information.
     Args:
         vocab_size (`int`, *optional*, defaults to 256000):
-            Vocabulary size of the Gemma2 model. Defines the number of different tokens that can be represented by the
-            `inputs_ids` passed when calling [`Gemma2Model`]
+            Vocabulary size of the NewModel model. Defines the number of different tokens that can be represented by the
+            `inputs_ids` passed when calling [`NewModelModel`]
         hidden_size (`int`, *optional*, defaults to 3072):
             Dimension of the hidden representations.
         intermediate_size (`int`, *optional*, defaults to 24576):
@@ -82,39 +67,31 @@ class Gemma2Config(PretrainedConfig):
             Whether to use a bias in the query, key, value and output projection layers during self-attention.
         attention_dropout (`float`, *optional*, defaults to 0.0):
             The dropout ratio for the attention probabilities.
-    
-        final_logit_softcapping (`float`, *optional*, defaults to 30.0): scaling factor when applying tanh softcapping on the logits.
-        attn_logit_softcapping (`float`, *optional*, defaults to 50.0): scaling factor when applying tanh softcapping on the attention scores.
-        query_pre_attn_scalar (`float`, *optional*, defaults to 224): scaling factor used on the attention scores
-        sliding_window (`int`, *optional*, defaults to 4096): in Gemma2, every other layer uses sliding window attention. This is the
-            size of the sliding window.
     ```python
-    >>> from transformers import Gemma2Model, Gemma2Config
-    >>> # Initializing a Gemma2 gemma2-7b style configuration
-    >>> configuration = Gemma2Config()
-    >>> # Initializing a model from the gemma2-7b style configuration
-    >>> model = Gemma2Model(configuration)
+    >>> from transformers import NewModelModel, NewModelConfig
+    >>> # Initializing a NewModel new_model-7b style configuration
+    >>> configuration = NewModelConfig()
+    >>> # Initializing a model from the new_model-7b style configuration
+    >>> model = NewModelModel(configuration)
     >>> # Accessing the model configuration
     >>> configuration = model.config
     ```"""
 
-    model_type = "gemma2"
+    model_type = "new_model"
     keys_to_ignore_at_inference = ["past_key_values"]
-
-    cache_implementation = "hybrid"
 
     def __init__(
         self,
-        vocab_size=256000,
-        hidden_size=3072,
-        intermediate_size=24576,
+        vocab_size=256030,
+        hidden_size=64,
+        intermediate_size=90,
         num_hidden_layers=28,
         num_attention_heads=16,
         num_key_value_heads=16,
         head_dim=256,
         hidden_act="gelu_pytorch_tanh",
         hidden_activation=None,
-        max_position_embeddings=8192,
+        max_position_embeddings=1500,
         initializer_range=0.02,
         rms_norm_eps=1e-6,
         use_cache=True,
@@ -125,10 +102,6 @@ class Gemma2Config(PretrainedConfig):
         rope_theta=10000.0,
         attention_bias=False,
         attention_dropout=0.0,
-        query_pre_attn_scalar=224,
-        sliding_window=4096,
-        final_logit_softcapping=30.0,
-        attn_logit_softcapping=50.0,
         **kwargs,
     ):
         self.vocab_size = vocab_size
@@ -155,7 +128,7 @@ class Gemma2Config(PretrainedConfig):
             tie_word_embeddings=tie_word_embeddings,
             **kwargs,
         )
-        self.query_pre_attn_scalar = query_pre_attn_scalar
-        self.sliding_window = sliding_window
-        self.final_logit_softcapping = final_logit_softcapping
-        self.attn_logit_softcapping = attn_logit_softcapping
+
+    @property
+    def num_heads(self):
+        return self.num_attention_heads

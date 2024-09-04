@@ -36,7 +36,7 @@ env:
 jobs:
   ssh_runner:
     name: "SSH"
-    runs-on: ["single-gpu", nvidia-gpu, a10, ci]
+    runs-on: ["single-gpu", nvidia-gpu, t4, ci]
     container:
       image: huggingface/transformers-all-latest-gpu
       options: --gpus all --privileged --ipc host -v /mnt/cache/.cache/huggingface:/mnt/cache/

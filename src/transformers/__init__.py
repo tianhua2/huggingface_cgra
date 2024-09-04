@@ -581,6 +581,15 @@ _import_structure = {
     "models.mobilenet_v2": ["MobileNetV2Config"],
     "models.mobilevit": ["MobileViTConfig"],
     "models.mobilevitv2": ["MobileViTV2Config"],
+    "models.mot": [
+        "MoTConfig",
+        "MoTForQuestionAnswering",
+        "MoTForSequenceClassification",
+        "MoTForTokenClassification",
+        "MoTLMHeadModel",
+        "MoTModel",
+        "MoTPreTrainedModel",
+    ],
     "models.mpnet": [
         "MPNetConfig",
         "MPNetTokenizer",
@@ -2718,6 +2727,16 @@ else:
             "MobileViTV2ForSemanticSegmentation",
             "MobileViTV2Model",
             "MobileViTV2PreTrainedModel",
+        ]
+    )
+    _import_structure["models.mot"].extend(
+        [
+            "MoTForQuestionAnswering",
+            "MoTForSequenceClassification",
+            "MoTForTokenClassification",
+            "MoTLMHeadModel",
+            "MoTModel",
+            "MoTPreTrainedModel",
         ]
     )
     _import_structure["models.mpnet"].extend(
@@ -5365,6 +5384,15 @@ if TYPE_CHECKING:
     from .models.mobilevitv2 import (
         MobileViTV2Config,
     )
+    from .models.mot import (
+        MoTConfig,
+        MoTForQuestionAnswering,
+        MoTForSequenceClassification,
+        MoTForTokenClassification,
+        MoTLMHeadModel,
+        MoTModel,
+        MoTPreTrainedModel,
+    )
     from .models.mpnet import (
         MPNetConfig,
         MPNetTokenizer,
@@ -7260,6 +7288,14 @@ if TYPE_CHECKING:
             MobileViTV2ForSemanticSegmentation,
             MobileViTV2Model,
             MobileViTV2PreTrainedModel,
+        )
+        from .models.mot import (
+            MoTForQuestionAnswering,
+            MoTForSequenceClassification,
+            MoTForTokenClassification,
+            MoTLMHeadModel,
+            MoTModel,
+            MoTPreTrainedModel,
         )
         from .models.mpnet import (
             MPNetForMaskedLM,

@@ -56,6 +56,7 @@ from ...utils import (
 )
 from .configuration_bert import BertConfig
 from .cgra_op import custom_int_softmax
+print('running cgra bert')
 
 logger = logging.get_logger(__name__)
 
@@ -245,6 +246,8 @@ class BertSelfAttention(nn.Module):
             self.distance_embedding = nn.Embedding(2 * config.max_position_embeddings - 1, self.attention_head_size)
 
         self.is_decoder = config.is_decoder
+        self.softmax_term = config.softmax_term
+        self.softmax_bw = config.softmax_bw
 
     def transpose_for_scores(self, x: torch.Tensor) -> torch.Tensor:
         new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
@@ -331,7 +334,7 @@ class BertSelfAttention(nn.Module):
 
         # Normalize the attention scores to probabilities.
         #attention_probs = nn.functional.softmax(attention_scores, dim=-1)
-        attention_probs = custom_int_softmax(attention_scores, 16, 5)
+        attention_probs = custom_int_softmax(attention_scores, self.softmax_bw, self.softmax_term)
 
         # This is actually dropping out entire tokens to attend to, which might
         # seem a bit unusual, but is taken from the original Transformer paper.

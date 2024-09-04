@@ -4128,7 +4128,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
 
         warning_msg = f"This model {type(model)}"
 
-        original_loaded_keys = loaded_keys
+        original_loaded_keys = loaded_keys.copy()
 
         def _fix_key(key):
             if "beta" in key:

@@ -463,6 +463,7 @@ _import_structure = {
     "models.gpt_sw3": [],
     "models.gptj": ["GPTJConfig"],
     "models.granite": ["GraniteConfig"],
+    "models.granitemoe": ["GraniteMoeConfig"],
     "models.grounding_dino": [
         "GroundingDinoConfig",
         "GroundingDinoProcessor",
@@ -2334,6 +2335,13 @@ else:
             "GraniteForCausalLM",
             "GraniteModel",
             "GranitePreTrainedModel",
+        ]
+    )
+    _import_structure["models.granitemoe"].extend(
+        [
+            "GraniteMoeForCausalLM",
+            "GraniteMoeModel",
+            "GraniteMoePreTrainedModel",
         ]
     )
     _import_structure["models.grounding_dino"].extend(
@@ -5236,6 +5244,7 @@ if TYPE_CHECKING:
     )
     from .models.gptj import GPTJConfig
     from .models.granite import GraniteConfig
+    from .models.granitemoe import GraniteMoeConfig
     from .models.grounding_dino import (
         GroundingDinoConfig,
         GroundingDinoProcessor,
@@ -6964,6 +6973,11 @@ if TYPE_CHECKING:
             GraniteForCausalLM,
             GraniteModel,
             GranitePreTrainedModel,
+        )
+        from .models.granitemoe import (
+            GraniteMoeForCausalLM,
+            GraniteMoeModel,
+            GraniteMoePreTrainedModel,
         )
         from .models.grounding_dino import (
             GroundingDinoForObjectDetection,

@@ -245,6 +245,64 @@ class TokenizerUtilsTest(unittest.TestCase):
         self.assertTrue(isinstance(batch["input_ids"], np.ndarray))
         self.assertEqual(batch["input_ids"].tolist(), [[0, 1, 2, tokenizer.pad_token_id], [0, 1, 2, 3]])
 
+    @require_tokenizers
+    def test_decoding(self):
+        for tokenizer_class in [BertTokenizer, BertTokenizerFast]:
+            with self.subTest(f"{tokenizer_class}"):
+                tokenizer = tokenizer_class.from_pretrained("google-bert/bert-base-cased")
+
+                token_id = 2300
+                decoded_flat = tokenizer.decode(token_id)
+                decoded_list = tokenizer.decode([token_id])
+
+                self.assertEqual(decoded_flat, "Force")
+                self.assertEqual(decoded_list, "Force")
+
+                token_id = 0
+                decoded_flat = tokenizer.decode(token_id)
+                decoded_list = tokenizer.decode([token_id])
+
+                self.assertEqual(decoded_flat, "[PAD]")
+                self.assertEqual(decoded_list, "[PAD]")
+
+                last_item_id = tokenizer.vocab_size - 1
+                decoded_flat = tokenizer.decode(last_item_id)
+                decoded_list = tokenizer.decode([last_item_id])
+
+                self.assertEqual(decoded_flat, "##：")
+                self.assertEqual(decoded_list, "##：")
+
+    @require_tokenizers
+    def test_decoding_extra_params(self):
+        for tokenizer_class in [BertTokenizer, BertTokenizerFast]:
+            with self.subTest(f"{tokenizer_class}"):
+                tokenizer = tokenizer_class.from_pretrained("google-bert/bert-base-cased")
+                tokenizer.add_tokens(["ஐ"], special_tokens=True)
+
+                # test special token with other tokens, skip the special tokens
+                sentence = "This is a beautiful flower ஐ"
+                ids = tokenizer(sentence)["input_ids"]
+                decoded_sent = tokenizer.decode(ids, skip_special_tokens=True)
+                self.assertEqual(decoded_sent, "This is a beautiful flower")
+
+                # test special token with other tokens, do not skip the special tokens
+                sentence = "This is a beautiful flower ஐ"
+                ids = tokenizer(sentence)["input_ids"]
+                decoded_sent = tokenizer.decode(ids, skip_special_tokens=False)
+                self.assertEqual(decoded_sent, "[CLS] This is a beautiful flower ஐ [SEP]")
+
+                # test special token stand alone, skip the special tokens
+                sentence = "ஐ"
+                ids = tokenizer(sentence)["input_ids"]
+                decoded_sent = tokenizer.decode(ids, skip_special_tokens=True)
+                self.assertEqual(decoded_sent, "")
+
+                # test special token stand alone, do not skip the special tokens
+                sentence = "ஐ"
+                ids = tokenizer(sentence)["input_ids"]
+                decoded_sent = tokenizer.decode(ids, skip_special_tokens=False)
+                self.assertEqual(decoded_sent, "[CLS] ஐ [SEP]")
+
     @require_torch
     def test_padding_accepts_tensors_pt(self):
         import torch

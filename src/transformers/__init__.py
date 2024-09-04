@@ -478,6 +478,7 @@ _import_structure = {
     "models.ibert": ["IBertConfig"],
     "models.idefics": ["IdeficsConfig"],
     "models.idefics2": ["Idefics2Config"],
+    "models.ijepa": ["IJepaConfig"],
     "models.imagegpt": ["ImageGPTConfig"],
     "models.informer": ["InformerConfig"],
     "models.instructblip": [
@@ -2393,6 +2394,13 @@ else:
             "Idefics2Model",
             "Idefics2PreTrainedModel",
             "Idefics2Processor",
+        ]
+    )
+    _import_structure["models.ijepa"].extend(
+        [
+            "IJepaForImageClassification",
+            "IJepaModel",
+            "IJepaPreTrainedModel",
         ]
     )
     _import_structure["models.imagegpt"].extend(
@@ -5253,6 +5261,7 @@ if TYPE_CHECKING:
         IdeficsConfig,
     )
     from .models.idefics2 import Idefics2Config
+    from .models.ijepa import IJepaConfig
     from .models.imagegpt import ImageGPTConfig
     from .models.informer import InformerConfig
     from .models.instructblip import (
@@ -7009,6 +7018,11 @@ if TYPE_CHECKING:
             Idefics2Model,
             Idefics2PreTrainedModel,
             Idefics2Processor,
+        )
+        from .models.ijepa import (
+            IJepaForImageClassification,
+            IJepaModel,
+            IJepaPreTrainedModel,
         )
         from .models.imagegpt import (
             ImageGPTForCausalImageModeling,

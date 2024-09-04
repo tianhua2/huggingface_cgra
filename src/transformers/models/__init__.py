@@ -273,5 +273,6 @@ from . import (
     xmod,
     yolos,
     yoso,
+    zamba,
     zoedepth,
 )

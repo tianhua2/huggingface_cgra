@@ -841,15 +841,13 @@ def is_torch_xpu_available(check_device=False):
     return hasattr(torch, "xpu") and torch.xpu.is_available()
 
 
+@lru_cache()
 def is_bitsandbytes_available():
-    if not is_torch_available():
-        return False
+    from transformers.integrations.integration_utils import validate_bnb_backend_availability
 
-    # bitsandbytes throws an error if cuda is not available
-    # let's avoid that by adding a simple check
-    import torch
-
-    return _bitsandbytes_available and torch.cuda.is_available()
+    return (
+        _bitsandbytes_available and is_torch_available() and validate_bnb_backend_availability(raise_exception=False)
+    )
 
 
 def is_flash_attn_2_available():

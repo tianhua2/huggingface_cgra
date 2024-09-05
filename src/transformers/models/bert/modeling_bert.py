@@ -334,7 +334,7 @@ class BertSelfAttention(nn.Module):
 
         # Normalize the attention scores to probabilities.
         #attention_probs = nn.functional.softmax(attention_scores, dim=-1)
-        attention_probs = custom_int_softmax(attention_scores, 16, 3)
+        attention_probs = custom_int_softmax(attention_scores, 16, 5)
 
         # This is actually dropping out entire tokens to attend to, which might
         # seem a bit unusual, but is taken from the original Transformer paper.

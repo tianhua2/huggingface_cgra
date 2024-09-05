@@ -77,7 +77,8 @@ def custom_int_softmax(x, bw, term):
     x_max = torch.max(x)
     x = x - x_max
     x_exp = custom_int_exp(x, bw, term)
-    x_sum = torch.tensor(0)
-    for x_i in x_exp:
-        x_sum = frac_add(x_sum, x_i, bw)
-    return frac_div(x_exp, x_sum, bw)
+    #x_sum = torch.tensor(0)
+    #for x_i in x_exp:
+    #    x_sum = frac_add(x_sum, x_i, bw)
+    x_sum = torch.sum(x_exp,dim=-1,keepdim=True)
+    return x_exp / x_sum

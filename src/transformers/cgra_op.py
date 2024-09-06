@@ -68,8 +68,10 @@ def frac_add(x, y, bw):
     return result/(2**(bw-1))
 
 def frac_div(x, y, bw):
-    x=(x*(2**(bw-1))).to(torch.int64)
-    y=(y*(2**(bw-1))).to(torch.int64)
+    #x=(x*(2**(bw-1))).to(torch.int64)
+    #y=(y*(2**(bw-1))).to(torch.int64)
+    x=torch.round(x*(2**(bw-1)))
+    y=torch.round(y*(2**(bw-1)))
     return x / y
 
 def custom_int_softmax(x, bw, term):

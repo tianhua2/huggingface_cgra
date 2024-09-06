@@ -112,7 +112,7 @@ class OPTConfig(PretrainedConfig):
         enable_bias=True,
         layer_norm_elementwise_affine=True,
         custom_softmax=False,
-        softmax_dtype='float',
+        softmax_int=False,
         softmax_bw=32,
         softmax_term=5,
         **kwargs,
@@ -147,6 +147,6 @@ class OPTConfig(PretrainedConfig):
         self._remove_final_layer_norm = _remove_final_layer_norm
         
         self.custom_softmax=custom_softmax
-        self.softmax_dtype=softmax_dtype
+        self.softmax_int=softmax_int
         self.softmax_bw=softmax_bw
         self.softmax_term=softmax_term

@@ -198,9 +198,11 @@ class OPTAttention(nn.Module):
         if attn_weights.dtype == torch.float16:
             #attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(torch.float16)
             attn_weights = custom_int_softmax(attn_weights, 16, 5).to(attn_weights)
+            print(torch.isnan(attn_weights).any())
         else:
             #attn_weights = nn.functional.softmax(attn_weights, dim=-1)
             attn_weights = custom_int_softmax(attn_weights, 32, 5).to(attn_weights)
+            print(torch.isnan(attn_weights).any())
 
         if layer_head_mask is not None:
             if layer_head_mask.size() != (self.num_heads,):

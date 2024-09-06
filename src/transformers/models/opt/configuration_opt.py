@@ -111,6 +111,10 @@ class OPTConfig(PretrainedConfig):
         eos_token_id=2,
         enable_bias=True,
         layer_norm_elementwise_affine=True,
+        custom_softmax=False,
+        softmax_dtype='float',
+        softmax_bw=32,
+        softmax_term=5,
         **kwargs,
     ):
         super().__init__(
@@ -141,3 +145,8 @@ class OPTConfig(PretrainedConfig):
         # with checkpoints that have been fine-tuned before transformers v4.20.1
         # see https://github.com/facebookresearch/metaseq/pull/164
         self._remove_final_layer_norm = _remove_final_layer_norm
+        
+        self.custom_softmax=custom_softmax
+        self.softmax_dtype=softmax_dtype
+        self.softmax_bw=softmax_bw
+        self.softmax_term=softmax_term

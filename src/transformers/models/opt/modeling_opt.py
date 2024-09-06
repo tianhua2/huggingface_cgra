@@ -117,6 +117,11 @@ class OPTAttention(nn.Module):
         self.q_proj = nn.Linear(self.embed_dim, self.embed_dim, bias=self.enable_bias)
         self.out_proj = nn.Linear(self.embed_dim, self.embed_dim, bias=self.enable_bias)
 
+        self.custom_softmax=config.custom_softmax
+        self.softmax_int=config.softmax_int
+        self.softmax_bw=config.softmax_bw
+        self.softmax_term=config.softmax_term
+
     def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
         return tensor.view(bsz, seq_len, self.num_heads, self.head_dim).transpose(1, 2).contiguous()
 
@@ -196,13 +201,19 @@ class OPTAttention(nn.Module):
 
         # upcast to fp32 if the weights are in fp16. Please see https://github.com/huggingface/transformers/pull/17437
         if attn_weights.dtype == torch.float16:
-            #attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(torch.float16)
-            attn_weights = custom_int_softmax(attn_weights, 16, 5).to(attn_weights)
-            #print(torch.isnan(attn_weights).any())
+            if self.custom_softmax:
+                if self.softmax_int:
+                    attn_weights = custom_int_softmax(attn_weights, self.softmax_bw, self.softmax_term).to(attn_weights)
+                    #print(torch.isnan(attn_weights).any())
+            else:
+                attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(torch.float16)
         else:
-            #attn_weights = nn.functional.softmax(attn_weights, dim=-1)
-            attn_weights = custom_int_softmax(attn_weights, 32, 5).to(attn_weights)
-            #print(torch.isnan(attn_weights).any())
+            if self.custom_softmax:
+                if self.softmax_int:
+                    attn_weights = custom_int_softmax(attn_weights, self.softmax_bw, self.softmax_term).to(attn_weights)
+                    #print(torch.isnan(attn_weights).any())
+            else:
+                attn_weights = nn.functional.softmax(attn_weights, dim=-1)
 
         if layer_head_mask is not None:
             if layer_head_mask.size() != (self.num_heads,):

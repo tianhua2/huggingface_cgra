@@ -91,7 +91,7 @@ def custom_int_softmax(x, bw, term):
     #    x_sum = frac_add(x_sum, x_i, bw)
 
     x_exp = torch.round(x*(2**(bw-1)))/(2**(bw-1))
-    x_exp = torch.clamp(x_exp, max=(2 ** (2 * bw - 1)) - 1)
+    #x_exp = torch.clamp(x_exp, max=(2 ** (2 * bw - 1)) - 1)
     x_sum = torch.sum(x_exp,dim=-1,keepdim=True)
 
     

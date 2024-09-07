@@ -52,13 +52,17 @@ def frac_exp2(x, bw, term):
     return result
 
 def custom_int_exp(x, bw, term):
-    fp_x = x.to(torch.float32)
+    fp_x = x.to(torch.float64)
 
     input = fp_x*torch.tensor(1.44238)
     int_part = torch.floor(input)
     frac_part = input - int_part
 
     result = torch.pow(2, int_part)*frac_exp2(frac_part, bw, term)
+    if torch.isnan(frac_exp2(frac_part, bw, term)).any():
+        print('2 exp frac overflow')
+    if torch.isnan(torch.pow(2, int_part)).any():
+        print('2 exp of int overflow', result.dtype)
     return result
   
 def frac_add(x, y, bw):
@@ -94,9 +98,9 @@ def custom_int_softmax(x, bw, term):
     #    x_sum = frac_add(x_sum, x_i, bw)
 
     if torch.isnan(x_exp).any():
-        print('x_exp overflow')
+        print('x_exp overflow', x_exp.dtype)
             
-    x_exp = torch.round(x*(2**(bw-1)))/(2**(bw-1))
+    x_exp = torch.round(x_exp*(2**(bw-1)))/(2**(bw-1))
     if torch.isnan(x_exp).any():
         print('x_exp round overflow', x_exp.dtype)
     x_exp = torch.clamp(x_exp, max=(2 ** (2 * bw - 1)) - 1)

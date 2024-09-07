@@ -59,15 +59,19 @@ def custom_int_exp(x, bw, term):
     return result
   
 def frac_add(x, y, bw):
-    x=(x*(2**(bw-1))).to(torch.int64)
-    y=(y*(2**(bw-1))).to(torch.int64)
+    #x=(x*(2**(bw-1))).to(torch.int64)
+    #y=(y*(2**(bw-1))).to(torch.int64)
 
+    x=torch.round(x*(2**(bw-1)))/(2**(bw-1))
+    y=torch.round(y*(2**(bw-1)))/(2**(bw-1))
+    
     ans = x + y
     if (ans >= 2 ** (2 * bw - 1)).any():
-        print('addition overflow')
+        print('addition overflow', x, y)
     ans[ans >= 2 ** (2 * bw - 1)] = (2 ** (2 * bw - 1)) - 1
-    result = ans.to(torch.int64)
-    return result/(2**(bw-1))
+    result = torch.round(ans*(2**(bw-1)))/(2**(bw-1))
+    #return result/(2**(bw-1))
+    return result
 
 def frac_div(x, y, bw):
     #x=(x*(2**(bw-1))).to(torch.int64)

@@ -83,4 +83,5 @@ def custom_int_softmax(x, bw, term):
     #for x_i in x_exp:
     #    x_sum = frac_add(x_sum, x_i, bw)
     x_sum = torch.sum(x_exp,dim=-1,keepdim=True)
-    return x_exp / x_sum
+    #return x_exp / x_sum
+    return frac_div(x_exp, x_sum, bw)

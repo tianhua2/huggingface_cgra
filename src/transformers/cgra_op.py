@@ -63,7 +63,8 @@ def frac_add(x, y, bw):
     y=(y*(2**(bw-1))).to(torch.int64)
 
     ans = x + y
-    print((ans >= 2 ** (2 * bw - 1)).any())
+    if (ans >= 2 ** (2 * bw - 1)).any():
+        print('addition overflow')
     ans[ans >= 2 ** (2 * bw - 1)] = (2 ** (2 * bw - 1)) - 1
     result = ans.to(torch.int64)
     return result/(2**(bw-1))

@@ -26,7 +26,8 @@ def asym_dequantize(q, scale, zero):
 def frac_mult(x, y, bw):
     x=(x*(2**(bw-1))).to(torch.int64)
     y=(y*(2**(bw-1))).to(torch.int64)
-
+    if torch.isnan(x).any():
+        print('frac_mult overflow', x.dtype)
     ans = (x * y).to(torch.int64)
 
     result = (ans/(2**(bw-1))).to(torch.int64)
@@ -37,6 +38,8 @@ def frac_exp2(x, bw, term):
     factorial = 1
     ln2 = torch.log(torch.tensor(2))
     ln2 = (ln2*(2**(bw-1))).to(torch.int)/(2**(bw-1))
+    if torch.isnan(ln2).any():
+        print('ln2 overflow', ln2.dtype)    
     power = torch.ones_like(x)
 
     for n in range(term):

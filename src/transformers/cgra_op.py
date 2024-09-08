@@ -100,11 +100,11 @@ def custom_int_softmax(x, bw, term):
     if torch.isnan(x_exp).any():
         print('x_exp overflow', x_exp.dtype)
             
-    x_exp = torch.round(x_exp*(2**(bw-1)))/(2**(bw-1))
+    x_exp = torch.round(x_exp*(2**(bw-1)))
     if torch.isnan(x_exp).any():
         print('x_exp round overflow', x_exp.dtype)
     x_exp = torch.clamp(x_exp, max=(2 ** (2 * bw - 1)) - 1)
-    x_sum = torch.sum(x_exp,dim=-1,keepdim=True)
+    x_sum = torch.sum(x_exp,dim=-1,keepdim=True)/(2**(bw-1))
 
     
     #return x_exp / x_sum

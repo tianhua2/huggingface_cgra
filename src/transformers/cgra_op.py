@@ -109,3 +109,18 @@ def custom_int_softmax(x, bw, term):
     
     #return x_exp / x_sum
     return frac_div(x_exp, x_sum, bw)
+
+def custom_int_tanh(x, bw, term):
+    x = x.to(dtype=torch.float64)
+    exp_2x = custom_int_exp(frac_mult(frac_mult(torch.tensor(-2.0), x, bw), x, bw), bw, term)
+    tanh_x = frac_add(torch.tensor(1.0), -exp_2x, bw) / frac_add(torch.tensor(1.0), exp_2x, bw)
+    return tanh_x
+
+def custom_int_gelu(x, bw, term):
+    x = x.to(dtype=torch.float64)
+    x_3 = frac_mult(frac_mult(frac_mult(x, x, bw), x, bw), torch.tensor(0.044715), bw)
+    # print(x, frac_mult(x, x, bw), x**3)
+    tanh = custom_int_tanh(x_3, bw, term)
+    tanh_plus1 = frac_add(torch.tensor(1.0), tanh, bw)
+
+    return frac_mult(frac_mult(torch.tensor(0.5), x, bw), tanh_plus1, bw)

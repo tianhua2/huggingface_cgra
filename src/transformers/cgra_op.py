@@ -113,7 +113,7 @@ def custom_int_softmax(x, bw, term):
 def custom_int_tanh(x, bw, term):
     x = x.to(dtype=torch.float64)
     #exp_2x = custom_int_exp(frac_mult(frac_mult(torch.tensor(-2.0), x, bw), x, bw), bw, term)
-    exp_2x = custom_int_exp(x*(-2)*x)
+    exp_2x = custom_int_exp(x*(-2)*x, 32, 3)
     #tanh_x = frac_add(torch.tensor(1.0), -exp_2x, bw) / frac_add(torch.tensor(1.0), exp_2x, bw)
     tanh_x = (1-exp_2x)/(1+exp_2x)
     return tanh_x

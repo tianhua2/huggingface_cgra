@@ -457,7 +457,9 @@ class OPTDecoderLayer(nn.Module):
 
         hidden_states = self.fc1(hidden_states)
         #hidden_states = self.activation_fn(hidden_states)
-        hidden_states = custom_int_gelu(hidden_states, 16, 3).to(hidden_states)
+        #hidden_states = custom_int_gelu(hidden_states, 16, 3).to(hidden_states)
+        hidden_states = torch.nn.functional.gelu(hidden_states)
+        
         if torch.isnan(hidden_states).any():
             print('custon gelu overflow', hidden_states.dtype)
 

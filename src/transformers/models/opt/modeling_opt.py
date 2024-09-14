@@ -41,7 +41,7 @@ from ...utils import (
 )
 from .configuration_opt import OPTConfig
 
-from ...cgra_op import custom_int_softmax
+from ...cgra_op import custom_int_softmax, custom_int_gelu
 
 if is_flash_attn_2_available():
     from ...modeling_flash_attention_utils import _flash_attention_forward
@@ -391,6 +391,7 @@ class OPTDecoderLayer(nn.Module):
         self.do_layer_norm_before = config.do_layer_norm_before
         self.dropout = config.dropout
         self.activation_fn = ACT2FN[config.activation_function]
+        
 
         self.self_attn_layer_norm = nn.LayerNorm(
             self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine
@@ -455,7 +456,10 @@ class OPTDecoderLayer(nn.Module):
             hidden_states = self.final_layer_norm(hidden_states)
 
         hidden_states = self.fc1(hidden_states)
-        hidden_states = self.activation_fn(hidden_states)
+        #hidden_states = self.activation_fn(hidden_states)
+        hidden_states = custom_int_gelu(hidden_states, 16, 3)
+        if torch.isnan(hidden_states).any():
+            print('custon gelu overflow', hidden_states.dtype)
 
         hidden_states = self.fc2(hidden_states)
         hidden_states = nn.functional.dropout(hidden_states, p=self.dropout, training=self.training)

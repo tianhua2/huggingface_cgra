@@ -52,6 +52,7 @@ from ...utils import (
 from ...utils.model_parallel_utils import assert_device_map, get_device_map
 from .configuration_gpt2 import GPT2Config
 
+from ...cgra_op import custom_int_softmax, custom_int_gelu
 
 if is_flash_attn_2_available():
     from ...modeling_flash_attention_utils import _flash_attention_forward
@@ -572,7 +573,8 @@ class GPT2MLP(nn.Module):
 
     def forward(self, hidden_states: Optional[Tuple[torch.FloatTensor]]) -> torch.FloatTensor:
         hidden_states = self.c_fc(hidden_states)
-        hidden_states = self.act(hidden_states)
+        #hidden_states = self.act(hidden_states)
+        hidden_states = torch.nn.functional.gelu(hidden_states)
         hidden_states = self.c_proj(hidden_states)
         hidden_states = self.dropout(hidden_states)
         return hidden_states

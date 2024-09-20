@@ -65,50 +65,50 @@ def custom_int_exp(x, bw, term):
         print('2 exp of int overflow', result.dtype)
     return result
   
-def frac_add(x, y, bw):
-    #x=(x*(2**(bw-1))).to(torch.int64)
-    #y=(y*(2**(bw-1))).to(torch.int64)
+#def frac_add(x, y, bw):
+#    #x=(x*(2**(bw-1))).to(torch.int64)
+#    #y=(y*(2**(bw-1))).to(torch.int64)
 
-    x=torch.round(x*(2**(bw-1)))/(2**(bw-1))
-    y=torch.round(y*(2**(bw-1)))/(2**(bw-1))
+#    x=torch.round(x*(2**(bw-1)))/(2**(bw-1))
+#    y=torch.round(y*(2**(bw-1)))/(2**(bw-1))
     
-    ans = x + y
-    if (ans >= 2 ** (2 * bw - 1)).any():
-        print('addition overflow', x, y)
-    ans[ans >= 2 ** (2 * bw - 1)] = (2 ** (2 * bw - 1)) - 1
-    result = torch.round(ans*(2**(bw-1)))/(2**(bw-1))
+#    ans = x + y
+#    if (ans >= 2 ** (2 * bw - 1)).any():
+#        print('addition overflow', x, y)
+#    ans[ans >= 2 ** (2 * bw - 1)] = (2 ** (2 * bw - 1)) - 1
+#    result = torch.round(ans*(2**(bw-1)))/(2**(bw-1))
     #return result/(2**(bw-1))
-    return result
+#    return result
 
-def frac_div(x, y, bw):
+#def frac_div(x, y, bw):
     #x=(x*(2**(bw-1))).to(torch.int64)
     #y=(y*(2**(bw-1))).to(torch.int64)
-    x=torch.round(x*(2**(bw-1)))
-    y=torch.round(y*(2**(bw-1)))
-    return x / y
+#    x=torch.round(x*(2**(bw-1)))
+#    y=torch.round(y*(2**(bw-1)))
+#    return x / y
 
-def custom_int_softmax(x, bw, term):
-    x_max = torch.max(x, -1, keepdim=True)[0]
-    x = x - x_max
-    x_exp = custom_int_exp(x.to(dtype=torch.float64), bw, term)
-    #x_exp = torch.exp(x)
+#def custom_int_softmax(x, bw, term):
+#    x_max = torch.max(x, -1, keepdim=True)[0]
+#    x = x - x_max
+#    x_exp = custom_int_exp(x.to(dtype=torch.float64), bw, term)
+#    #x_exp = torch.exp(x)
     
     #x_sum = torch.tensor(0)
     #for x_i in x_exp:
     #    x_sum = frac_add(x_sum, x_i, bw)
 
-    if torch.isnan(x_exp).any():
-        print('x_exp overflow', x_exp.dtype)
+#    if torch.isnan(x_exp).any():
+#        print('x_exp overflow', x_exp.dtype)
             
-    x_exp = torch.round(x_exp*(2**(bw-1)))/(2**(bw-1))
-    if torch.isnan(x_exp).any():
-        print('x_exp round overflow', x_exp.dtype)
-    x_exp = torch.clamp(x_exp, max=(2 ** (2 * bw - 1)) - 1)
-    x_sum = torch.sum(x_exp,dim=-1,keepdim=True)
+#    x_exp = torch.round(x_exp*(2**(bw-1)))/(2**(bw-1))
+#    if torch.isnan(x_exp).any():
+#        print('x_exp round overflow', x_exp.dtype)
+#    x_exp = torch.clamp(x_exp, max=(2 ** (2 * bw - 1)) - 1)
+#    x_sum = torch.sum(x_exp,dim=-1,keepdim=True)
 
     
     #return x_exp / x_sum
-    return frac_div(x_exp, x_sum, bw)
+#    return frac_div(x_exp, x_sum, bw)
 
 def custom_int_tanh(x, bw, term):
     x = x.to(dtype=torch.float64)
@@ -128,3 +128,47 @@ def custom_int_gelu(x, bw, term):
     #tanh_plus1 = 1+ tanh
     return frac_mult(frac_mult(torch.tensor(0.5), x, bw), tanh_plus1, bw)
     #return 0.5*x*tanh_plus1
+
+def frac_add(x, y, bw):
+    #print(x)
+    scale = frac_bits[bw]
+    tmp_x=(x*(2**(scale-1))).to(torch.int64)
+    #print('x: ', x)
+    #print(y)
+    tmp_y=(y*(2**(scale-1))).to(torch.int64)
+    #print('y: ', y)
+    ans = tmp_x + tmp_y
+    # if(ans >=2 **(bw-1)).any():
+    #   print('addition overflow')
+    ans[ans >= 2 ** (bw - 1)] = (2 ** (bw - 1)) - 1
+    result = ans.to(torch.int64)
+    return result/(2**(scale-1))
+
+def frac_div(x, y, bw):
+    #print(x)
+    scale = frac_bits[bw]
+    tmp_x=(x*(2**(scale-1))).to(torch.int64)
+    #print('x: ', x)
+    #print(y)
+    tmp_y=(y*(2**(scale-1))).to(torch.int64)
+    # print(x, y, x/y)
+    #print('y: ', y)
+    return tmp_x / tmp_y
+
+def custom_int_softmax(x, bw, term):
+    x_max = torch.max(x)
+    x = x - x_max
+    #print(x_max, x.max())
+    x_exp, s = custom_int_exp(x, bw, term)
+    ln2 = torch.log(torch.tensor(2))
+    #print("sum should be", x_exp.sum(), x_exp.max(), s)
+    x_sum = torch.tensor(0)
+    for x_i in x_exp:
+        # print(x_i)
+        x_sum = frac_add(x_sum, x_i, bw)
+        # print(x_i)
+        # print(x_exp, x.exp(), x_sum)
+        #print("sum actual be", x_sum)
+
+    return frac_div(x_exp, x_sum, bw)
+    # return x_exp / x_sum

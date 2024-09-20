@@ -51,19 +51,19 @@ def frac_exp2(x, bw, term):
 
     return result
 
-def custom_int_exp(x, bw, term):
-    fp_x = x.to(torch.float64)
+#def custom_int_exp(x, bw, term):
+#    fp_x = x.to(torch.float64)
 
-    input = fp_x*torch.tensor(1.44238)
-    int_part = torch.floor(input)
-    frac_part = input - int_part
+#    input = fp_x*torch.tensor(1.44238)
+#    int_part = torch.floor(input)
+#    frac_part = input - int_part
 
-    result = torch.pow(2, int_part)*frac_exp2(frac_part, bw, term)
-    if torch.isnan(frac_exp2(frac_part, bw, term)).any():
-        print('2 exp frac overflow')
-    if torch.isnan(torch.pow(2, int_part)).any():
-        print('2 exp of int overflow', result.dtype)
-    return result
+#    result = torch.pow(2, int_part)*frac_exp2(frac_part, bw, term)
+#    if torch.isnan(frac_exp2(frac_part, bw, term)).any():
+#        print('2 exp frac overflow')
+#    if torch.isnan(torch.pow(2, int_part)).any():
+#        print('2 exp of int overflow', result.dtype)
+#    return result
   
 #def frac_add(x, y, bw):
 #    #x=(x*(2**(bw-1))).to(torch.int64)
@@ -129,6 +129,21 @@ def custom_int_gelu(x, bw, term):
     return frac_mult(frac_mult(torch.tensor(0.5), x, bw), tanh_plus1, bw)
     #return 0.5*x*tanh_plus1
 
+def custom_int_exp(x, bw, term):
+    q, scale, zero = asym_quantize(x, bw)
+    fp_x = asym_dequantize(q, scale, zero)
+    #print(fp_x)
+    input = fp_x*torch.tensor(1.44238)
+    int_part = torch.floor(input)
+    frac_part = input - int_part
+    #print(frac_part)
+    #print(int_part)
+    max_int_scale = 2 ** int(scale.max() * 0.9)
+    #print(max_int_scale)
+    q, scale = frac_exp2(frac_part, bw, term)
+    q = q * torch.pow(2, int_part) / max_int_scale
+    return q, scale * max_int_scale
+    
 def frac_add(x, y, bw):
     #print(x)
     scale = frac_bits[bw]
